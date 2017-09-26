@@ -1,4 +1,3 @@
-setwd("/Users/erinhanan/Documents/Mine/UCSB/Modeling/JohnsonCreek/worldfiles")
 
 worldIn <- "world.jc.h77.s100.v200.suFix"
 worldOut <- "world.jc.h77.s100.v200.suFix.60"
