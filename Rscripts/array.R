@@ -1,3 +1,5 @@
+# From Tague Lab
+
 readin_rhessys_output = function(pre,b=1,c=0,z=0,p=0,h=0,g=1, wy=1)  {
  
 bd=NULL; bdg=NULL; cd=NULL; cdg=NULL; zd=NULL; zdg=NULL; pd=NULL; pdg=NULL

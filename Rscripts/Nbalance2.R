@@ -1,3 +1,5 @@
+# from Naomi Tague
+
 nbalance = function(rhout)
  
  rhout = res2

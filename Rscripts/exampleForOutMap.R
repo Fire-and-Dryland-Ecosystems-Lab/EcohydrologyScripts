@@ -15,5 +15,5 @@ write.table(tmp2, file="lai.new.2001.txt", quote=F, row.names=FALSE, col.names=F
 
 # To read it back into GRASS:
 # Note: p.rip30.up270.cl = name of my patch map
-# cd /Users/erinhanan/Documents/Mine/UCSB/Modeling/JohnsonCreek/auxdata
+# cd ../auxdata
 # r.recode input=p.rip30.up270.cl output=lai.new.2014 rules=lai.new.2001.txt
