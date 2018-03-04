@@ -1,0 +1,55 @@
+
+cd path_to/auxdata
+
+# Create a map of light extinction (for different veg types)
+
+r.mapcalc 'beerslaw=(landcover.recode.mode == 42)*0.46 + (landcover.recode.mode == 71)*0.48 +(landcover.recode.mode == 52)*0.55 + (landcover.recode.mode == 41)*0.54 + (landcover.recode.mode == 11)*0.1 + (landcover.recode.mode == 31)*0.1'
+
+
+# Determine NDVIinf for each veg type (i.e., lgst NDVI)
+# Determine NDVIback for image (i.e., average of 20 brightest pixels)
+
+
+# Make a separate map for each veg type:
+g.copy rast=basin.jc30m,MASK
+r.mapcalc 'pine42=(landcover.recode.mode == 42)*NDVI2001.noneg'
+r.mapcalc 'grass71=(landcover.recode.mode == 71)*NDVI2001.noneg'
+r.mapcalc 'shrub52=(landcover.recode.mode == 52)*NDVI2001.noneg'
+r.mapcalc 'deciduous41=(landcover.recode.mode == 41)*NDVI2001.noneg'
+r.mapcalc 'water11=(landcover.recode.mode == 11)*NDVI2001.noneg'
+r.mapcalc 'rock31=(landcover.recode.mode == 31)*NDVI2001.noneg'
+g.remove MASK
+
+# Calculate NDVIinf map (fill in appropriate NDVIinf for each veg type):
+r.mapcalc 'NDVIinf=(landcover.recode.mode == 42)*0.981 + (landcover.recode.mode == 71)*0.899 +(landcover.recode.mode == 52)*0.89705 + (landcover.recode.mode == 41)*0.878 + (landcover.recode.mode == 11)*0.804 + (landcover.recode.mode == 31)*0.524'
+
+# Calculate LAI (Fill in appropriate value for NDVIback):
+r.mapcalc 'lai2001.perVeg=(-1/beerslaw)*log((NDVIinf - NDVI2001.noneg)/(NDVIinf-NDVIback))'
+
+# Remove negative values:
+r.mapcalc 'lai2001.perVeg.noneg=(lai2001.perVeg < 0)*0.001+(lai2001.perVeg>=0)*lai2001.perVeg'
+
+# Remove unrealistically high values:
+r.mapcalc 'lai2001.perVeg.noExtremes=(lai2001.perVeg.noneg > 14)*14+(lai2001.perVeg.noneg<=14)*lai2001.perVeg.noneg'
+
+# Create ascii map that can be used for LAIREAD and the spinup target file:
+cd path_to/auxdata
+r.out.ascii input=lai2001.perVeg.noExtremes output=LAI2001perVeg.asc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
