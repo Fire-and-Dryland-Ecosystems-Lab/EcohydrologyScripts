@@ -8,7 +8,7 @@ jc=read.table("world.jc.h77.s100.v200.suFix", head=F)
 # Pine = 42            shrub_understory = 50
 # Grass = 71           noveg_understory = 51
 # Shrub = 52           noveg_understory = 51
-# Deciduous = 41       shrub_understory = 50
+# Deciduous = 41       shrub_understory = 49
 # Water = 11           noveg_understory = 51
 # Rock = 31            noveg_understory = 51
 
@@ -24,16 +24,16 @@ summary(canopy_ID)
 
 
 # ---------
-# From Ryan Bart:
+# Modified from Ryan Bart:
 # Find every patch that has pine, add understory, then repeat routine (below) for each veg type
 # need to change in/out file and veg IDs for each cycle
 # Add an understory canopy to a worldfile
 
-world_name_in <- "world.jc.h77.s100.v200.suFix.understory"
-world_name_out <- "world.jc.h77.s100.v200.suFix.understory2"
+world_name_in <- "input_worldfile"
+world_name_out <- "output_worldfile"
 
-canopy_default_ID <- 31
-understory_canopy_default_ID <- 51
+canopy_default_ID <- 42
+understory_canopy_default_ID <- 50
 understory_canopy_strata_ID <- 1000000    # should be larger than highest canopy_strata_ID
 
 add_understory <- function(world_name_in,
