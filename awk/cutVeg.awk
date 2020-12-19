@@ -1,0 +1,47 @@
+{a = 0;}
+($2 == "cs.cpool")  {printf("%f	%s\n",0.004,$2); a=1;}
+($2 == "cs.leafc")   {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.dead_leafc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.leafc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.leafc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.live_stemc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.livestemc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.livestemc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.dead_stemc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.deadstemc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.deadstemc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.live_crootc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.livecrootc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.livecrootc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.dead_crootc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.deadcrootc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.deadcrootc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.frootc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.frootc_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.frootc_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "cs.cwdc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "epv.prev_leafcalloc")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.npool")  {printf("%f	%s\n",0.002,$2); a=1;}
+($2 == "ns.leafn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.dead_leafn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.leafn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.leafn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.live_stemn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.livestemn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.livestemn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.dead_stemn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.deadstemn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.deadstemn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.live_crootn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.livecrootn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.livecrootn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.dead_crootn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.deadcrootn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.deadcrootn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.frootn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.frootn_store")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.frootn_transfer")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.cwdn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+($2 == "ns.retransn")  {printf("%f	%s\n",$1*0.0,$2); a=1;}
+
+(a == 0) {printf("%s	%s\n",$1,$2);}
