@@ -1,3 +1,5 @@
+#title: "organizeSpatialOutputTopo"
+#author: "ErinJHanan"
 
 #################################################################################################
 # Creates a data fram with separate columns for over and understory and adds vegetation type

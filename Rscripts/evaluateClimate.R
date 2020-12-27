@@ -1,3 +1,7 @@
+#title: "evaluateClimate"
+#author: "ErinJHanan"
+
+
 #####################################################################################
 # Just Seeders NoFire, read in data and plot vegetation vs. precip --- this is for runs with 2 canopy layers
 

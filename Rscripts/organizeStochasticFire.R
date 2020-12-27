@@ -1,3 +1,5 @@
+#title: "organizeStochasticFire"
+#author: "ErinJHanan"
 
 # FireSizes columns are:
 # 1. the number of patches burned

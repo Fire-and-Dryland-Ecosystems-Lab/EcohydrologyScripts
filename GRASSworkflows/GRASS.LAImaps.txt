@@ -1,3 +1,4 @@
+# Author: Erin J Hanan
 
 cd path_to/auxdata
 

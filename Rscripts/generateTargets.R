@@ -1,3 +1,7 @@
+#title: "generateTargets"
+#author: "ErinJHanan"
+
+
 setwd("...")
 
 # read in, add basin, zone, stratum

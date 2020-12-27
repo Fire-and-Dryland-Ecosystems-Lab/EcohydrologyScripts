@@ -1,3 +1,6 @@
+#title: "multiBurn"
+#authors: "ErinJHanan and NaomiTague"
+
 # creates box plots for all simulations (for each year) -- shows inter-simulation variability over time
 
 nday = 365*20+5

@@ -1,3 +1,5 @@
+#title: "spatialOutMap"
+#author: "ErinJHanan"
 
 # read in patch daily results 
 setwd("...")
