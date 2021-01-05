@@ -3,7 +3,7 @@
 
 # Read in worldfile
 setwd("...")
-jc=read.table("world.jc.h77.s100.v200.suFix", head=F)
+jc=read.table("world.x", head=F) # enter the name of your worldfile here
 
 # Add Understory for Pine and Deciduous
 # Veg types            Understory
@@ -18,9 +18,9 @@ jc=read.table("world.jc.h77.s100.v200.suFix", head=F)
 # Determine highest canopy_strata_ID so understory IDs will start higher
 # In worldfile:
 # :v/canopy_strata_ID/d   #deletes all lines that don't contain canopy_strata_ID
-# w canopy_strata_ID_world.jc.h77
+# w canopy_strata_ID_world.x  #use your worldfile name as suffix
 # Read into R:
-canopy_ID=read.table("canopy_strata_ID_world.jc.h77", head=F)
+canopy_ID=read.table("canopy_strata_ID_world.x", head=F) #use the same name as line 21 above
 summary(canopy_ID)
 # Max = 235421
 
