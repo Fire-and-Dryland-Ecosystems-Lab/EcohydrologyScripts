@@ -3,57 +3,57 @@
 
 
 #####################################################################################
-# Just Seeders NoFire, read in data and plot vegetation vs. precip --- this is for runs with 2 canopy layers
+# read in data and plot vegetation vs. precip --- this is for runs with 2 canopy layers
 
 
-sdglNF=read.table("NoFire_grow_stratum.daily", header=T)
-sdglNF=mkdate(sdglNF)
-s1NF = subset(sdglNF, sdglNF$stratumID == 39393)
-s2NF = subset(sdglNF, sdglNF$stratumID != 39393)
-bdglNF=read.table("NoFire_grow_basin.daily", header=T)
-bdglNF=mkdate(bdglNF)
-bdlNF=read.table("NoFire_basin.daily", header=T)
-bdlNF=mkdate(bdlNF)
-zdglNF=read.table("NoFire_grow_zone.daily", header=T)
-zdglNF=mkdate(zdglNF)
-pdglNF=read.table("NoFire_grow_zone.daily", header=T)
-pdglNF=mkdate(pdglNF)
+sdgl=read.table("yourOutput_grow_stratum.daily", header=T) # enter your output file name here
+sdgl=mkdate(sdgl)
+s1 = subset(sdgl, sdgl$stratumID == 39393) #enter the overstory stratum ID
+s2 = subset(sdgl, sdgl$stratumID != 39393) # same number as above
+bdgl=read.table("yourOutput_grow_basin.daily", header=T)
+bdgl=mkdate(bdgl)
+bdl=read.table("yourOutput_basin.daily", header=T)
+bdl=mkdate(bdl)
+zdgl=read.table("yourOutput_grow_zone.daily", header=T)
+zdgl=mkdate(zdgl)
+pdgl=read.table("yourOutput_grow_zone.daily", header=T)
+pdgl=mkdate(pdgl)
 
 par(mar=c(5,5,5,5))
-plot(s1NF$date, s1NF$proj_lai, type="l", col="darkgreen", yaxt="n", main="May No Fire Seeders", ylim=c(0,7), xlab="Date", ylab="")
-lines(s2NF$date, s2NF$proj_lai, col="green3")
+plot(s1$date, s1$proj_lai, type="l", col="darkgreen", yaxt="n", main="May No Fire Seeders", ylim=c(0,7), xlab="Date", ylab="")
+lines(s2$date, s2$proj_lai, col="green3")
 axis(side=2, at=c(0,1,2,3,4,5))
 mtext("LAI", side=2, line=2.75, at=0.25, col="darkgreen")
 mtext("Shrubs", side=2, line=2, at=2.5, cex=0.75, col="darkgreen")
 mtext("Herbs", side=2, line=2, at=0.25, cex=0.75, col="green3")
 par(new=T)
-plot(zdglNF$date, zdglNF$rain, type="l", yaxt="n", xaxt="n", ylim=c(500,0), col="dodgerblue2", xlab="", ylab="")
+plot(zdgl$date, zdgl$rain, type="l", yaxt="n", xaxt="n", ylim=c(500,0), col="dodgerblue2", xlab="", ylab="")
 axis(side=4, at=c(0, 100, 200))
 mtext("Rainfall (mm)", side = 4, line=2.5, at=125, col="dodgerblue2")
 
-plot(s1NF$date, s1NF$root_depth, type="l")
+plot(s1$date, s1$root_depth, type="l")
 
 #############################################################################################
 # plot relationship between precip and transpiration
-plot(bdlNF$precip, bdlNF$trans)
+plot(bdl$precip, bdl$trans)
 
 # Aggregate precip by year and subset for 2007-2021
-precip.wy = aggregate(bdlNF$precip, by=list(bdlNF$wy), sum)
+precip.wy = aggregate(bdl$precip, by=list(bdl$wy), sum)
 precip.wy <- subset(precip.wy, Group.1 == 2007:2021, select=c(Group.1, x))
 plot(precip.wy$Group.1,precip.wy$x, type = "h")
 
 # Aggregate transpiration by year and subset for 2007-2021
-trans.wy = aggregate(bdlNF$trans, by=list(bdlNF$wy), sum)
+trans.wy = aggregate(bdl$trans, by=list(bdl$wy), sum)
 trans.wy <- subset(trans.wy, Group.1 == 2007:2021, select=c(Group.1, x))
 plot(trans.wy$Group.1,trans.wy$x, type = "h")
 
 # Aggregate streamflow by year and subset for 2007-2021
-streamflow.wy = aggregate(bdlNF$streamflow, by=list(bdlNF$wy), sum)
+streamflow.wy = aggregate(bdl$streamflow, by=list(bdl$wy), sum)
 streamflow.wy <- subset(streamflow.wy, Group.1 == 2007:2021, select=c(Group.1, x))
 # plot(streamflow.wy$Group.1,streamflow.wy$x, type = "h")
 
 # Aggregate evaporation by year and subset for 2007-2021
-evap.wy = aggregate(bdlNF$evap, by=list(bdlNF$wy), sum)
+evap.wy = aggregate(bdl$evap, by=list(bdl$wy), sum)
 evap.wy <- subset(evap.wy, Group.1 == 2007:2021, select=c(Group.1, x))
 # plot(evap.wy$Group.1,evap.wy$x, type = "h")
 
