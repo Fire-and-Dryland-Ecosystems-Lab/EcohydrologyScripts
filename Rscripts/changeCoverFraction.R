@@ -1,8 +1,8 @@
 #title: "ChangeCoverFraction"
 #authors: "ErinJHanan and Ryan Bart"
 
-worldIn <- "world.jc.h77.s100.v200.suFix"
-worldOut <- "world.jc.h77.s100.v200.suFix.60"
+worldIn <- "world.x" #enter your worldfile name here
+worldOut <- "world.x.cover60" #enter an output name for the new worldfile
 
 # changes cover fraction for all veg types
 
@@ -32,8 +32,8 @@ changeFraction(worldIn,
 # ----------
 #If want to change only for specific veg types
 
-worldIn <- "world.jc.h77.s100.v200.suFix"
-worldOut <- "world.jc.h77.s100.v200.suFix.60"
+worldIn <- "world.x"
+worldOut <- "world.x.cover60"
 
 changeFractionPartial <- function(worldIn,
                            worldOut){
