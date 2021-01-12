@@ -9,26 +9,19 @@ library(plyr)
 
 setwd("...")
 
-test = readin_rhessys_output("understory")
-plot(test$bdg$date, test$bd$lai, type="l")
-plot(test$bdg$date, test$bdg$soilc, type="l")
-plot(test$bdg$date, test$bdg$soiln, type="l")
-plot(test$bdg$date, test$bdg$nitrate, type="l")
-
-
-patch = readin_rhessys_output("10day", c=1)
-overstory = subset(patch$cdg, patch$cdg$stratumID < 1000000)
+patch = readin_rhessys_output("yourOuptputPrefix", c=1)
+overstory = subset(patch$cdg, patch$cdg$stratumID < 1000000) # may need to modify depending on your stratum numbering scheme
 understory = subset(patch$cdg, patch$cdg$stratumID >= 1000000)
 
 
 #--------
 
 # read in, add basin, zone, stratum
-hill_ID=scan(file="../../auxdata.subset/hill.jc.h77.asc", skip=6, na.strings="*")
-patch_ID=scan(file="../../auxdata.subset/patch.jc.h77.asc", skip=6, na.strings="*")
+hill_ID=scan(file="../../auxdata.subset/hillMap.asc", skip=6, na.strings="*") #update with name of your spatail map
+patch_ID=scan(file="../../auxdata.subset/patchMap.asc", skip=6, na.strings="*") #update with name of your spatail map
 zone_ID = patch_ID
 stratum_ID = patch_ID
-landcover=scan(file="../../auxdata.subset/landcover.jc.h77.asc", skip=6, na.strings="*")
+landcover=scan(file="../../auxdata.subset/landcoverMap.asc", skip=6, na.strings="*") #update with name of your spatail map
 
 x=rep(1,length(hill_ID)) # uses the number of cases
 basin_ID=x

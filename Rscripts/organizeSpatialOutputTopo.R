@@ -9,29 +9,22 @@ library(plyr)
 
 setwd("...")
 
-test = readin_rhessys_output("understory")
-plot(test$bdg$date, test$bdg$lai, type="l")
-plot(test$bdg$date, test$bdg$soilc, type="l")
-plot(test$bdg$date, test$bdg$soiln, type="l")
-plot(test$bdg$date, test$bdg$nitrate, type="l")
-
-
-patch = readin_rhessys_output("10day", c=1)
+patch = readin_rhessys_output("yourOutputPrefix", c=1)
 overstory = subset(patch$cdg, patch$cdg$stratumID < 1000000)
 understory = subset(patch$cdg, patch$cdg$stratumID >= 1000000)
 
 
 #--------
 
-# read in, add basin, zone, stratum
-hill_ID=scan(file="../../auxdata.subset/hill.jc.h77.asc", skip=6, na.strings="*")
-patch_ID=scan(file="../../auxdata.subset/patch.jc.h77.asc", skip=6, na.strings="*")
+# read in, add basin, zone, stratum. Replace names with the names for your maps
+hill_ID=scan(file="../../auxdata.subset/hillMap.asc", skip=6, na.strings="*")
+patch_ID=scan(file="../../auxdata.subset/patchMap.asc", skip=6, na.strings="*")
 zone_ID = patch_ID
 stratum_ID = patch_ID
-landcover=scan(file="../../auxdata.subset/landcover.jc.h77.asc", skip=6, na.strings="*")
-elevation=scan(file="../../auxdata.subset/dem30m.h77.asc", skip=6, na.strings="*")
-slope=scan(file="../../auxdata.subset/slope.h77.asc", skip=6, na.strings="*")
-aspect=scan(file="../../auxdata.subset/aspect.h77.asc", skip=6, na.strings="*")
+landcover=scan(file="../../auxdata.subset/landcoverMap.asc", skip=6, na.strings="*")
+elevation=scan(file="../../auxdata.subset/dem30m.asc", skip=6, na.strings="*")
+slope=scan(file="../../auxdata.subset/slope.asc", skip=6, na.strings="*")
+aspect=scan(file="../../auxdata.subset/aspect.asc", skip=6, na.strings="*")
 
 x=rep(1,length(hill_ID)) # uses the number of cases
 basin_ID=x
