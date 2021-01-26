@@ -1,8 +1,9 @@
 # Author: Erin J Hanan
+# This workflow calculates an LAI map (calculated independently for each vegetation type) from and NDVI map. It also normalizes from using soil pixels and the brightest pixels in each NDVI map
 
 cd path_to/auxdata
 
-# Create a map of light extinction (for different veg types)
+# Create a map of light extinction (for different veg types). Find these values in the veg def file.
 
 r.mapcalc 'beerslaw=(landcover.recode.mode == 42)*0.46 + (landcover.recode.mode == 71)*0.48 +(landcover.recode.mode == 52)*0.55 + (landcover.recode.mode == 41)*0.54 + (landcover.recode.mode == 11)*0.1 + (landcover.recode.mode == 31)*0.1'
 
