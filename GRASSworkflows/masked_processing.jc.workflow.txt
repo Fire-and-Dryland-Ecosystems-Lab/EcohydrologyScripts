@@ -2,7 +2,7 @@
 #April 6, 2016
 #Modified by E. Hanan 4/11/2016
 
-#Run this workflow from your targeted directory where you need save the text files. 
+#Run this workflow from your targeted directory where you need save the text files (e.g., auxdata). Examples in this workflow are for a watershed called Johnson Creek and the main GRASS directory is called GRASSjc. 
 
 # unique ID map
 #Created a new GRASS location as "GRASSjc.netcdf" and set the projection as Latitude-Longitude
