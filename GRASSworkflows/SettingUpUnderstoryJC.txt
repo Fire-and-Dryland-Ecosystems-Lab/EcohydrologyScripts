@@ -1,5 +1,5 @@
 # Created by EJ Hanan 3/6/2018
-# This workflow will create a new worldfile for Johnson Creek that contains an understory
+# This workflow will create a new worldfile for a watershed called Johnson Creek that contains an understory
 
 # Veg types
 # Pine = 42        shrubUnderstory = 50
