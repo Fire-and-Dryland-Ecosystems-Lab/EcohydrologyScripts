@@ -3,17 +3,17 @@
 
 # read in patch daily results, uses readin_rhessys_output function
 setwd("...")
-new50.p = readin_rhessys_output("yourOutputPrefix", p=1)
+output = readin_rhessys_output("yourOutputPrefix", p=1)
 
 # subset individual days ... do for each day you output
-tmp = subset(yourPDGOutFile$pdg,yourPDGOutFile$pdg$year == 2001)
-new2001.10.pdg = subset(tmp, tmp$month == 10) #name based on date for desired spatial output
+tmp = subset(output$pdg,output$pdg$year == 2001)
+out.day.pdg = subset(tmp, tmp$month == 10) #name based on date for desired spatial output
 # ...  
 
 # Export for GRASS
 setwd("...")
-tmp2 = sprintf("%d:%d:%f", new2001.10.pdg$patchID, new2001.10.pdg$stratumID, new2001.10.pdg$proj_lai)
-write.table(tmp2, file="lai.new.2001.txt", quote=F, row.names=FALSE, col.names=F) #name based on date for desired spatial output
+tmp2 = sprintf("%d:%d:%f", out.day.pdg$patchID, out.day.pdg$stratumID, out.day.pdg$proj_lai)
+write.table(tmp2, file="lai.txt", quote=F, row.names=FALSE, col.names=F) #name based on date for desired spatial output
 
 
 # To read it back into GRASS:
