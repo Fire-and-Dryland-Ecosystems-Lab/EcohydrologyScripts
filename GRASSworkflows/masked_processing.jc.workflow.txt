@@ -1,13 +1,4 @@
-#Mingliang Liu 
-#April 6, 2016
-#Modified by E. Hanan 4/11/2016
-
-# Revised netCDF workflow
-#RHESSys/NETCDF
-#Projects/FireEarth/Johnson Creek/setup#
-#GRASS
-
-# 8/19/2018
+#Mingliang Liu and Erin Hanan 
 # Updated: 6/26/2020
 
 #Goals: 
