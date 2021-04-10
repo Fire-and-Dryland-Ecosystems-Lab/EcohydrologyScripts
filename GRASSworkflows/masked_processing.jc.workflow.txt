@@ -8,20 +8,20 @@
 
 #Requirements:
 #1. netcdf libraries
-#	* I used homebrew (if you do this make sure to add usr/local/lib to your bash profile). 
-#	* Alternatively you can follow the steps on the RHESSys wiki. *Note: the installation didn’t work for me with the wiki method. I think this happened because the make file was replaced by ‘cmake’ which you have to download. This is why I went with homebrew.
+#	I used homebrew (if you do this make sure to add usr/local/lib to your bash profile). 
+#	Alternatively you can follow the steps on the RHESSys wiki. *Note: the installation didn’t work for me with the wiki method. I think this happened because the make file was replaced by ‘cmake’ which you have to download. This is why I went with homebrew.
 #2. ‘create_bas_netcdf’ executable
 
 #Useful commands:
-#* Ncdump –h filename.nc*: gives information from the netcdf header. Should be useful for figuring out resolution, though it didn’t work for me, even with the latest netcdf library
+# Ncdump –h filename.nc*: gives information from the netcdf header. Should be useful for figuring out resolution, though it didn’t work for me, even with the latest netcdf library
 
-#/*In this example, main GRASS location is called GRASSjc*/
-#/*Run this script on your targeted directory where you need save the text files (auxdata).*/
+# In this example, main GRASS location is called GRASSjc
+# Run this script on your targeted directory where you need save the text files (auxdata).
 
 ### Unique ID map
-#I created a new GRASS location as "GRASSjc.netcdf" and set the projection as Latitude-Longitude
+# I created a new GRASS location as "GRASSjc.netcdf" and set the projection as Latitude-Longitude
 
-#	* Create a new location, then choose "read projection and datum terms from a georeferenced data file", then selected the tiff (that I converted from a .nc file; can do this in ArcGIS; don’t reproject)
+#	Create a new location, then choose "read projection and datum terms from a georeferenced data file", then selected the tiff (that I converted from a .nc file; can do this in ArcGIS; don’t reproject)
 
 ### Remove any existing mask
 
@@ -36,8 +36,8 @@ r.proj input=basin.jc30m location=GRASSjc mapset=PERMANENT -g
 g.region n=44:59:59.643812N s=43:59:58.690354N w=116:01:02.90711W e=114:57:53.86318W rows=11265 cols=8162 -p
 
 ### Set the resolution to match the original resolution from the original mapset 
-#	* (i.e., GRASSjc) (here it is 10 meter to 0.3 second); this is a conversion (to go from meters to seconds)
-#	* Need to figure out what line above means ... in the info printed to the screen, we rounded down to 0.3 (NS resolution), then run:
+#	(i.e., GRASSjc) (here it is 10 meter to 0.3 second); this is a conversion (to go from meters to seconds)
+#	Need to figure out what line above means ... in the info printed to the screen, we rounded down to 0.3 (NS resolution), then run:
 
 g.region res=00:00:0.3 -a -p
 
@@ -45,17 +45,17 @@ g.region res=00:00:0.3 -a -p
 r.proj input=basin.jc30m location=GRASSjc mapset=PERMANENT output=basin.jc method=nearest --verbose --overwrite
 
 ### Produce the weather station raster map 
-#	* (now the netcdf climate has 1/24 degree resolution, i.e. 2.5 minutes [this can be found using the command ncdump -vlat or ncdump -vlon and then calculate the difference between 2 continuous numbers (e.g. the difference between latitudes for 2 cells, found at the bottom of what's printed to the screen) to get resolution, and convert the difference to degrees minute-seconds])
-#	* The central location may be different from the real centroid of the original netCDF grid cell which is fine, because it will search the nearest grid cell in the netCDF data file. However, it's better to set the extent in DMS for aligning purposes. 
-#	* The coordinates are rounded up from the region boundary, and resolution is from the netcdf file (determined as described above) 
-#	* Another way to figure out the above conversion is to find a "lat long to DMS" converter online and enter the lat lon for the first grid cell, convert to DMS, record the results, then convert the 2nd grid cell to DMS, then determine the difference between the 2 cells (in DMS; in this case it's 2:30)
+#	(now the netcdf climate has 1/24 degree resolution, i.e. 2.5 minutes [this can be found using the command ncdump -vlat or ncdump -vlon and then calculate the difference between 2 continuous numbers (e.g. the difference between latitudes for 2 cells, found at the bottom of what's printed to the screen) to get resolution, and convert the difference to degrees minute-seconds])
+#	The central location may be different from the real centroid of the original netCDF grid cell which is fine, because it will search the nearest grid cell in the netCDF data file. However, it's better to set the extent in DMS for aligning purposes. 
+#	The coordinates are rounded up from the region boundary, and resolution is from the netcdf file (determined as described above) 
+#	Another way to figure out the above conversion is to find a "lat long to DMS" converter online and enter the lat lon for the first grid cell, convert to DMS, record the results, then convert the 2nd grid cell to DMS, then determine the difference between the 2 cells (in DMS; in this case it's 2:30)
 
 g.region n=45:00:00N s=44:30:00N w=115:45:00W e=115:15:00W res=00:02:30
 
 ### generate x & y location for each weather grid cell. 
-#	* xloc is the x-location (longitude at here), yloc is y-location (latitude). 
-#	* xmap is the column sequence from left (1) to right (number of columns)
-#	* ymap if from top (1) to bottom (number of rows).
+#	xloc is the x-location (longitude at here), yloc is y-location (latitude). 
+#	xmap is the column sequence from left (1) to right (number of columns)
+#	ymap if from top (1) to bottom (number of rows).
 
 r.mapcalc 'xloc=x()'
 r.mapcalc 'yloc=y()'
@@ -63,7 +63,7 @@ r.mapcalc 'xmap=col()'
 r.mapcalc 'ymap=row()'
 
 
-#	* use the following command to get column number
+#	use the following command to get column number
 
 r.info xmap
 
@@ -73,7 +73,7 @@ r.info xmap
 r.mapcalc "xyid=(ymap-1)*12+xmap"
 
 ### Set screen height 
-#	* In this example, 2 m is based on the weather station, which can be found using the command nc dump -h nameofnetcdffile [any temperature file]. It gives information about height in m)
+#	In this example, 2 m is based on the weather station, which can be found using the command nc dump -h nameofnetcdffile [any temperature file]. It gives information about height in m)
 
 r.mapcalc "screen_height=2.0"
 
@@ -82,7 +82,7 @@ r.mapcalc "screen_height=2.0"
 
 r.proj input=dem30m_crop location=GRASSjc mapset=PERMANENT -g  
 
-#	* this is just for getting the information, will print to screen the numbers needed for the next command 
+#	this is just for getting the information, will print to screen the numbers needed for the next command 
 
 g.region n=44:57:46.018675N s=44:32:04.893094N w=115:39:09.594579W e=115:21:33.762274W rows=1599 cols=745
 
@@ -143,26 +143,26 @@ r.out.ascii input=yloc output=yloc.asc
 
 
 ### create base station file
-#	* compile the code to create your basestation file:
-#	`* gcc createbaseinfo_netcdf.c`
+#	compile the code to create your basestation file:
+#	gcc createbaseinfo_netcdf.c
 
-#	* Rename a.out as create_bas_netcdf
-#	* Move create_bas_netcdf executable to the same folder where your ascii maps (created above) are stored
-#	* Run create_bas_netcdf to create the base station file:	
-# `createbas_netcdf cellid_msk.asc lai_msk.asc dem_msk.asc screen_msk.asc xloc.asc yloc.asc netcdf_base.jc.txt <netcdf_resolution> <PPT_multiplier> <start_year> <offset_doy> <leap_year>`
-#	* In my case netcdf resolution = 0.041667 (location searching distance)
-#	* PPT_multiplier = 86.4
-#	* start_year = 1900 (this is a start year index, not the first date of your met data
-#	* offset_day = 0
-#	* leap_year = 1
+#	Rename a.out as create_bas_netcdf
+#	Move create_bas_netcdf executable to the same folder where your ascii maps (created above) are stored
+#	Run create_bas_netcdf to create the base station file:	
+# createbas_netcdf cellid_msk.asc lai_msk.asc dem_msk.asc screen_msk.asc xloc.asc yloc.asc netcdf_base.jc.txt <netcdf_resolution> <PPT_multiplier> <start_year> <offset_doy> <leap_year>
+#	In my case netcdf resolution = 0.041667 (location searching distance)
+#	PPT_multiplier = 86.4
+#	start_year = 1900 (this is a start year index, not the first date of your met data
+#	offset_day = 0
+#	leap_year = 1
 
-#My example command:
-#./createbas_netcdf cellid_msk.asc lai_msk.asc dem_msk.asc screen_msk.asc xloc.asc yloc.asc netcdf_base.jc.txt 0.041667 86.4 1900 0 1
+# My example command:
+# createbas_netcdf cellid_msk.asc lai_msk.asc dem_msk.asc screen_msk.asc xloc.asc yloc.asc netcdf_base.jc.txt 0.041667 86.4 1900 0 1
 
-#	* Some updates may be needed to get the basestation file header into the proper format since after this code was created, we created the option for additional netcdf inputs. See an example basestation file
+#	Some updates may be needed to get the basestation file header into the proper format since after this code was created, we created the option for additional netcdf inputs. See an example basestation file
 	
 ### Reproject this netCDF grid cell id, i.e. xyid_msk and use it as the zone ID map to generate the worldfile; this defines what patches use each grid cell’s weather data. 
-#	* Project the zone ID into main GRASS directory:
+#	Project the zone ID into main GRASS directory:
 
 g.gisenv set=LOCATION_NAME=GRASSjc
 r.mask -r
@@ -178,5 +178,5 @@ r.mapcalc "netcdf_msk=temp"
 g.remove temp
 
 
-#* Finally, use this netcdf_msk as base station map to create worldfile. Before doing this, all raster data should be aligned (same extent and resolution).
-#* When compiling RHESSys, you will use the flag netcdf=T
+# Finally, use this netcdf_msk as base station map to create worldfile. Before doing this, all raster data should be aligned (same extent and resolution).
+# When compiling RHESSys, you will use the flag netcdf=T
