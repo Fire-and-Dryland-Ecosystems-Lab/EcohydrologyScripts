@@ -1,5 +1,5 @@
 #Mingliang Liu and Erin Hanan 
-# Updated: 6/26/2020
+# Updated: 4/15/21
 
 #Goals: 
 #1. Create ID, elevation, LAI, and screen height ascii maps to use as inputs to the createbas_netcdf binary to create a NetCDF base station file. 
@@ -151,7 +151,7 @@ r.out.ascii input=yloc output=yloc.asc
 #	Run create_bas_netcdf to create the base station file:	
 # createbas_netcdf cellid_msk.asc lai_msk.asc dem_msk.asc screen_msk.asc xloc.asc yloc.asc netcdf_base.jc.txt <netcdf_resolution> <PPT_multiplier> <start_year> <offset_doy> <leap_year>
 #	In my case netcdf resolution = 0.041667 (location searching distance)
-#	PPT_multiplier = 86.4
+#	PPT_multiplier = 86.4 -- In my netcdf file precip units are kg/m2/second (that is equivalent to mm/m2/s) The 86.4 is converting from seconds to days and then from mm to m 3600*24/1000 is 86.4. If the units are just mm, then the multiplier would be 0.001 (to go from mm to m)
 #	start_year = 1900 (this is a start year index, not the first date of your met data
 #	offset_day = 0
 #	leap_year = 1
