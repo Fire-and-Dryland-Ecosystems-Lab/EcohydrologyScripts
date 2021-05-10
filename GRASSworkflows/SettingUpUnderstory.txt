@@ -1,0 +1,25 @@
+# Created by EJ Hanan 3/6/2018
+# This workflow will create a new worldfile for a watershed called Johnson Creek that contains an understory
+
+# Veg types
+# Pine = 42        shrubUnderstory = 50
+# Grass = 71       noVegUnderstory = 51
+# Shrub = 52       noVegUnderstory = 51
+# Deciduous = 41   shrubUnderstory = 49
+# Water = 11       noVegUnderstory = 51
+# Rock = 31        noVegUnderstory = 51
+
+# I am using a separate understory file for shrub and deciduous in case I want to change them separately. But for now, the parameters are identical
+
+# In Johnson Creek the highest canopy_strata_ID is 235421, so will start understory at 1000000
+
+# Create understory map
+
+g.remove MASK
+r.mapcalc 'landcover.understory=(landcover.recode.mode == 42)*50+(landcover.recode.mode == 41)*49+(landcover.recode.mode == 71)*51+(landcover.recode.mode == 52)*51+(landcover.recode.mode == 11)*51+(landcover.recode.mode == 31)*51'
+
+# Edit template to include understory = template.jc.understory
+# Run grass2world
+g.copy rast=basin.jc30m,MASK
+g2w -t template.jc.understory -w world.jc.understory
+
