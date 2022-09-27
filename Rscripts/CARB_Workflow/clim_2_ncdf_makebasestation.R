@@ -105,7 +105,6 @@ for (i in seq_along(clim_files)) {
   varnames[i] = names(tmp$var)
 }
 
-
 ncbase = read.table(file.path(map_dest,"netcdf.base"))
 
 ncbase[ncbase[,2]=="year_start_index", 1] = "1900"
@@ -119,8 +118,8 @@ ncbase[ncbase[,2]=="netcdf_var_tmin", 1] = varnames[grepl("tmmn", clim_files)]
 ncbase[ncbase[,2]=="netcdf_rain_filename", 1] = clim_files[grepl("pr", clim_files)]
 ncbase[ncbase[,2]=="netcdf_var_rain", 1] = varnames[grepl("pr", clim_files)]
 
-ncbase[ncbase[,2]=="netcdf_huss_filename", 1] = "NULL"
-ncbase[ncbase[,2]=="netcdf_var_huss", 1] = "NULL"
+ncbase[ncbase[,2]=="netcdf_huss_filename", 1] = clim_files[grepl("daily_mean_specific_humidity", varnames)]
+ncbase[ncbase[,2]=="netcdf_var_huss", 1] = varnames[grepl("daily_mean_specific_humidity", varnames)]
 
 ncbase[ncbase[,2]=="netcdf_rmax_filename", 1] = clim_files[grepl("rmax", clim_files)]
 ncbase[ncbase[,2]=="netcdf_var_rmax", 1] = varnames[grepl("rmax", clim_files)]
@@ -128,11 +127,11 @@ ncbase[ncbase[,2]=="netcdf_var_rmax", 1] = varnames[grepl("rmax", clim_files)]
 ncbase[ncbase[,2]=="netcdf_rmin_filename", 1] = clim_files[grepl("rmin", clim_files)]
 ncbase[ncbase[,2]=="netcdf_var_rmin", 1] = varnames[grepl("rmin", clim_files)]
 
-ncbase[ncbase[,2]=="netcdf_rsds_filename", 1] = "NULL"
-ncbase[ncbase[,2]=="netcdf_var_rsds", 1] = "NULL"
+ncbase[ncbase[,2]=="netcdf_rsds_filename", 1] = clim_files[grepl("daily_mean_shortwave_radiation_at_surface", varnames)]
+ncbase[ncbase[,2]=="netcdf_var_rsds", 1] = varnames[grepl("daily_mean_shortwave_radiation_at_surface", varnames)]
 
-ncbase[ncbase[,2]=="netcdf_was_filename", 1] = "NULL"
-ncbase[ncbase[,2]=="netcdf_var_was", 1] = "NULL"
+ncbase[ncbase[,2]=="netcdf_was_filename", 1] = clim_files[grepl("daily_mean_wind_speed", varnames)]
+ncbase[ncbase[,2]=="netcdf_var_was", 1] = varnames[grepl("daily_mean_wind_speed", varnames)]
 
 write.table(ncbase, file.path(map_dest,"netcdf.base"), row.names = F, col.names = F, quote = F)
 

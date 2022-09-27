@@ -68,7 +68,11 @@ for (infile in clim_files) {
                     "ncrename -d day,time -v day,time -O ", outfile, " ", outfile, "\n",
                     "ncatted -O -a coordinates,,m,c,'time lat lon' ", outfile, "\n",
                     "ncap2 -O -s '",varname,"=double(",varname,")' ", outfile," ", outfile)
-  tmp = noquote(paste("bash -c \"", crop_cmd, "\"", sep = ""))
+  # ASSUMES EITHER UNIX OR IF ON WINDOWS USING WSL
+  if (.Platform$OS.type == "windows") {
+    tmp = noquote(paste("bash -c \"", crop_cmd, "\"", sep = ""))
+  }
+  
   system(tmp)
 }
 
