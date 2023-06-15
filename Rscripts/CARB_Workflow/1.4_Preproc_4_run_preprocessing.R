@@ -34,9 +34,12 @@ file.copy(from = paste0(name,".flow"), to = file.path("flowtables",basename(past
 # ---------- MSR -----------
 # name = "preprocessing/preprocess_out/Ward_msr90m"
 # template = "preprocessing/template/carb_msr.template"
+
+# ----- netcdf -----
 name = "preprocessing/preprocess_out/Ward_msr90m_nc"
 template = "preprocessing/template/carb_msr_nc.template"
 asprules = "preprocessing/rules/LPC_90m.rules"
+
 
 RHESSysPreprocess(template = template,
                   name = name,
@@ -50,6 +53,20 @@ RHESSysPreprocess(template = template,
 
 file.copy(from = paste0(name,".world"), to = file.path("worldfiles",basename(paste0(name,".world"))), overwrite = T)
 file.copy(from = paste0(name,".flow"), to = file.path("flowtables",basename(paste0(name,".flow"))), overwrite = T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
  # ---------- DEBUG -----------

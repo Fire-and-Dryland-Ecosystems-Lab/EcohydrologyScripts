@@ -42,6 +42,10 @@ basin_vect = as.polygons(basin)
 basin_vect_unproj = project(basin_vect, "+proj=longlat +datum=WGS84 +no_defs ")
 
 clim_tmp = rast(clim_files[1])
+# tmp = nc_open(clim_files[1])
+# tmp$var$precipitation_amount$dim[[1]]$vals
+# tmp$var$precipitation_amount$dim[[2]]$vals
+
 ext(clim_tmp) = ext(basin_vect_unproj)
 # output geotif raster using first day of data from ncdf
 # writeRaster(clim_tmp[[1]], "preprocessing/spatial_source/GRIDSOURCE_crop_agg_met_pr_1979_CurrentYear_CONUS.tif", overwrite=T)

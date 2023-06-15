@@ -2,7 +2,7 @@
 # 
 # Uses an input basin boundary map and set of lifeform percent cover maps (tree, shrub, herb, other)
 # using these inputs it creates a set of MSR rules and a corresponding map
-
+library(rhutils)
 library(terra)
 library(data.table)
 
@@ -46,7 +46,7 @@ oc_in = rast("../data/Landcover/2019/LPC_h003v008_OC_2019_V01.tif")
 
 mask_proj = project(mask_vect, tc_in)
 
-plot(tc_in$LPC_1)
+plot(tc_in$LPC_h003v008_TC_2019_V01_1)
 plot(mask_proj, add=T)
 
 # project
@@ -255,6 +255,8 @@ if (plots) {
   # investigate some of the edge cases
   mean_dt[mean_dt$other_diff >= 13 | mean_dt$other_diff <= -13,]
   
+  mean_dt[mean_dt$other_diff >= 6.5 | mean_dt$other_diff <= -6.5,]
+  
   # When rounding to 10's I get some reaching up to ~ +/- 15 for the other cover, but for tree, shrub, and herb eveerything is < +/- 5
   # the cause of the larger differences looks to be cases where multiple initial values are just on the edge in terms
   # of rounding, and all go the same direction, 
@@ -272,39 +274,64 @@ if (plots) {
 }
 
 
-
-
-
-# ------------------------------ ALTERNATIVE = GET NLCD ------------------------------
-run = F
-if (run) {
-  # devtools::install_github("ropensci/FedData")
-  library(FedData)
+# ------------------------------ Write Rules function ------------------------------
+write_rules_file = function(rules, file_out, veg_ids, strata_ct) {
+  fcon = file(file_out,open = "wt")
+  vals = as.data.frame(rules)[!names(rules) %in% c("id", "rule")]
   
-  maskPolygon <- polygon_from_extent(raster::extent(ext(mask_map)[1:4]), proj4string='+proj=utm +datum=NAD83 +zone=11')
-  
-  NLCD <- get_nlcd(template=maskPolygon, label='VEPIIN', force.redo = T, extraction.dir = paste0("preprocessing/spatial_source/NLCD/"))
-  
-  NLCD_proj = project(as(NLCD, "SpatRaster"), mask_map, method = "near")
-  NLCD_crop = crop(NLCD_proj, mask_map)
-  NLCD_mask = mask(NLCD_crop, mask_map)
-  
-  plot(NLCD_mask, type = "classes")
-  hist(NLCD_mask)
-  nlcd_colors()
-  
-  summary(as.factor(values(NLCD_mask)))
-  
-  NLCD_mask_reclass = terra::classify(NLCD_mask, data.frame(c(11, 21, 22, 31, 42, 52, 71, 90, 95), c(31, 31, 31, 31, 7, 50, 50, 7, 50) ))
-  
-  writeRaster(NLCD_mask_reclass, "preprocessing/spatial90m/NLCD_veg_cover.tif", overwrite = T)
-  
-  # PLOT for saving
-  par(mfrow = c(1,2))
-  plot(LPC_veg_cover_map, type = "classes", main ="LPC Veg Cover")
-  plot(NLCD_mask_reclass, type = "classes", main = "NLCD Veg Cover")
-  dev.off()
+  for (i in 1:nrow(rules)) {
+    inc_cols = which(vals[i, ] != 0)
+    text_out = c(paste0("ID\t",rules[i,"rule"]),
+                 paste0("subpatch_count\t", length(inc_cols)),
+                 paste0("_patch"),
+                 paste0("\tpct_family_area\tvalue\t", paste(vals[i,inc_cols]/100,collapse = " | ")),
+                 paste0("\t_canopy_strata\t",paste(strata_ct[inc_cols],collapse = " | ")),
+                 paste0("\t\tveg_parm_ID\t",paste(veg_ids[inc_cols],collapse = " | ")),
+                 ""
+    )
+    writeLines(text = text_out, con = fcon)
+  }
+  close(fcon)
 }
+
+# ================================================================================
+# ------------------------------ MSR THINNING RULES ------------------------------
+# ================================================================================
+thin = F
+if (thin) {
+  thin_dt = binned_dt_unique[,c("rule","Tree_rnd","Shrub_rnd","Herb_rnd_crt","Other_rnd_crt")]
+  names(thin_dt) = c("rule","Tree","Shrub","Herb","Other")
+  
+  # GOAL: Remove 40% overstory biomass, 90% understory
+  # from each rule type with overstory, add a second overstory patch with RELATIVE coverage split of 40/60
+  # same for understory, but 90/10
+  
+  # these are modifications of the PERCENT COVER
+  thin_dt$Tree_treat_thin = thin_dt$Tree * 0.4
+  thin_dt$Tree_treat_remain = thin_dt$Tree * 0.6
+  thin_dt$Tree = NULL
+  
+  thin_dt$Shrub_treat_thin = thin_dt$Shrub * 0.9
+  thin_dt$Shrub_treat_remain = thin_dt$Shrub * 0.1
+  thin_dt$Shrub = NULL
+  
+  thin_dt = thin_dt[,c("rule","Tree_treat_thin","Tree_treat_remain","Shrub_treat_thin","Shrub_treat_remain",
+                       "Herb", "Other")]
+  veg = c(1, 1, 5, 5, 3, 4)
+  strata = rep(1,length(veg))
+  file_out = "preprocessing/rules/LPC_90m_thin1.rules"
+  
+  write_rules_file(thin_dt, file_out, veg, strata)
+  
+
+  
+  # ------------------------------ OUTPUT MSR RULES FILE ------------------------------
+
+
+
+}
+
+
 
 # ------------------------------ COMBINE HERB AND OTHER COVER CATEGORIES ------------------------------
 old = F
