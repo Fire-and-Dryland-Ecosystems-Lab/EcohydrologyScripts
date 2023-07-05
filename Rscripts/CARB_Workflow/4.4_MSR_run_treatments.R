@@ -35,7 +35,7 @@ for (i in seq_along(runs)) {
   dates = c("2000 1 1 1", "2020 9 30 24")
   
   input_rhessys = IOin_rhessys_input(
-    version = "../bin/rhessys7.4",
+    version = "../../../repos/rhessys-develop/rhessys/rhessys7.4",
     tec_file = paste0("tecfiles/ward",name,".tec"),
     world_file = worldfiles[i],
     world_hdr_prefix = name,
@@ -59,6 +59,7 @@ for (i in seq_along(runs)) {
                 "defs/stratum_grass.def", "defs/stratum_nonveg.def"),
     basestations = paste0(clim, ".base")
   )
+  
   
   # --------------------  Def File Parameters --------------------
   

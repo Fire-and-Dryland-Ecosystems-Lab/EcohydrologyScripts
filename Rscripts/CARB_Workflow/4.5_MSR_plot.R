@@ -7,14 +7,17 @@ library(fasstr)
 library(cowplot)
 
 out_dir = "output/rh_out_2023-06-10--04-55-35/"
+treat_date = "2005-03-1"
 
 DT = get_basin_daily(out_dir)
 DT_mn = basin_daily2mn(DT)
 
 # problem_vars = c("cs.net_psn", "Kstar_potential_both", "cdf.psn_to_cpool")
+treat_year = as.POSIXlt(treat_date)$year + 1900
+
 DT$Treatment = "NA"
-DT[date < "2005-03-1", "Treatment"] = "Pre Treatment"
-DT[date >= "2005-03-1", "Treatment"] = "Post Treatment"
+DT[date < treat_date, "Treatment"] = "Pre Treatment"
+DT[date >= treat_date, "Treatment"] = "Post Treatment"
 DT$Treatment = factor(DT$Treatment, levels = c("Pre Treatment", "Post Treatment", "NA"))
 
 DT = DT %>% group_by(run) %>% mutate(`Cumulative Streamflow` = cumsum(streamflow))
@@ -34,8 +37,8 @@ DT$run[DT$run == "Ward_msrthin6"] = "Clearcut"
 # streamflow timing
 DT_Q_time = calc_annual_flow_timing(data = DT, dates = "date", values = "streamflow", groups = "run")
 DT_Q_time$Treatment = "NA"
-DT_Q_time[DT_Q_time$Year < "2005", "Treatment"] = "Pre Treatment"
-DT_Q_time[DT_Q_time$Year >= "2005", "Treatment"] = "Post Treatment"
+DT_Q_time[DT_Q_time$Year < treat_year, "Treatment"] = "Pre Treatment"
+DT_Q_time[DT_Q_time$Year >= treat_year, "Treatment"] = "Post Treatment"
 DT_Q_time$Treatment = factor(DT_Q_time$Treatment, levels = c("Pre Treatment", "Post Treatment", "NA"))
 
 # add water year month
@@ -66,8 +69,43 @@ Q_prepost = DT_mn %>%
   scale_x_continuous(labels = wy_mn, breaks = c(1:12)) +
   theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 315))
 
+
+Q_prepost2 = DT_mn %>% 
+  group_by(run, Treatment, month_wy) %>%
+  filter(year_month < "Mar 2010") %>%
+  summarise(streamflow = mean(streamflow)) %>%
+  ggplot() + aes(x = month_wy, y = streamflow*1000, color = as.factor(run), linetype = Treatment) + 
+  geom_line(linewidth=1) + ggtitle("Average Monthly Streamflow") + ylab("Streamflow (mm)") + 
+  labs(color = "Scenario") +
+  scale_x_continuous(labels = wy_mn, breaks = c(1:12)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 315))
+
+
+Q_prepost2DOY = DT %>% 
+  group_by(run, Treatment, yd) %>%
+  filter(date < "2010-03-1") %>%
+  summarise(streamflow = mean(streamflow)) %>%
+  ggplot() + aes(x = yd, y = streamflow*1000, color = as.factor(run), linetype = Treatment) + 
+  geom_line(linewidth=1) + ggtitle("Average Monthly Streamflow") + ylab("Streamflow (mm)") + 
+  labs(color = "Scenario") +
+  scale_x_continuous(labels = wy_mn, breaks = c(1:12)) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 315))
+
+
+DT_mn %>%
+ filter(year >= 2000L & year <= 2010L) %>%
+ ggplot() +
+ aes(x = "", y = lai, fill = run) +
+ geom_boxplot() +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(Treatment))
+
+
+
+
 Q_timeseries = DT %>% 
-  filter(date >= "1989-9-1" & date < "1993-10-1") %>%
+  filter(date >= "2004-01-1" & date < "2015-01-1") %>%
   ggplot() + aes(x = date, y = streamflow*1000, color = as.factor(run)) + 
   geom_line(linewidth=1) + ggtitle("Streamflow Following Treatment") + ylab("Streamflow (mm)") + 
   geom_vline(xintercept = as.numeric(as.Date("1989-10-01")), alpha = 0.5, size = 1) +
@@ -93,10 +131,24 @@ Q_quad = plot_grid(Q_prepost + theme(legend.position="none"),
                    qtiming_line + theme(legend.position="none"),
                    leg, align = "v", nrow = 2)
 
+# ggsave(filename = "plots/Q_quad.png", plot = Q_quad, width = 12, height = 9, dpi = 500, scale = 0.75)
 
 
+library(dplyr)
+library(ggplot2)
 
-ggsave(filename = "plots/Q_quad.png", plot = Q_quad, width = 12, height = 9, dpi = 500, scale = 0.75)
+
+library(dplyr)
+library(ggplot2)
+
+DT %>%
+ filter(year >= 2005L & year <= 2007L) %>%
+ ggplot() +
+ aes(x = date, y = `Cumulative Streamflow`, colour = run) +
+ geom_line() +
+ scale_color_hue(direction = 1) +
+ theme_minimal()
+
 
 
 
@@ -146,4 +198,27 @@ ggplot(DT_mn) +
   aes(x = ym_ind, y = cs.net_psn, colour = run) +
   geom_line() +
   scale_color_hue(direction = 1)
+
+
+ggplot(DT_mn) +
+  aes(x = "", y = streamflow, fill = run) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  theme_minimal()
+
+
+
+ggplot(DT_mn) +
+ aes(x = "", y = totalc, fill = run, colour = Treatment) +
+ geom_boxplot() +
+ scale_fill_hue(direction = 1) +
+ scale_color_hue(direction = 1) +
+ theme_minimal()
+
+
+ggplot(DT_mn) +
+  aes(x = "", y = cs.net_psn, fill = run) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  theme_minimal()
 

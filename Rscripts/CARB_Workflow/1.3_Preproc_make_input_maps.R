@@ -2,7 +2,8 @@
 
 library(RHESSysPreprocessing)
 library(terra)
-
+terra::aggregate()
+terra::resample()
 
 # map generation/modification
 dem_map = rast("preprocessing/spatial90m/dem.tif")

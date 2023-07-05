@@ -2,6 +2,8 @@ library(rhutils)
 library(terra)
 library(data.table)
 
+devtools::install_github("wburke24/rhutils")
+
 # lpc_data_path = "../data/Landcover/2019/" 
 # lpc_pattern = "h003v008"
 # mask_map_path = "preprocessing/spatial90m/basin.tif"

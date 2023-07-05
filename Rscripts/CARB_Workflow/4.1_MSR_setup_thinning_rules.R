@@ -24,17 +24,20 @@ lpc_rules_df = outlist[[1]]
 unique_rules = outlist[[2]]
 
 rules_map_std = make_rules_map(lpc_rules_df, mask_map_path, lpc_map_list)
-writeRaster(rules_map_std, output_rules_map, overwrite = T)
 
-write_rules_file(
-  unique_rules,
-  output_rules_file,
-  vegid_tree = 1,
-  vegid_shrub = 5,
-  vegid_herb = 3,
-  vegid_other = 4,
-  strata_ct = NULL
-)
+# These steps shouldve already happened in 1.2.1
+
+# writeRaster(rules_map_std, output_rules_map, overwrite = T)
+# 
+# write_rules_file(
+#   unique_rules,
+#   output_rules_file,
+#   vegid_tree = 1,
+#   vegid_shrub = 5,
+#   vegid_herb = 3,
+#   vegid_other = 4,
+#   strata_ct = NULL
+# )
 
 
 
