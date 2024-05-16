@@ -17,7 +17,7 @@ library(waterData)
 # 00065 	Gage Height 		00002 	Minimum
 # 00010 	Temperature 		00003 	Mean
 # 00400 	pH 	          	00008 	Median
-site.ID    <- "10336676"
+site.ID    <- "11284400"
 start.Date <- "1970-01-01" 
 end.Date   <- "2022-09-30" 
 data.code  <- "00060" # for streamflow
@@ -72,71 +72,72 @@ library(nhdplusTools)
 library(sf)
 library(FedData)
 library(terra)
-library(rgdal)
+# library(rgdal)
 
 # ------------------------------ GET MAPS ------------------------------
 nwissite <- list(featureSource = "nwissite", featureID = paste0("USGS-",site.ID))
 basin <- get_nldi_basin(nwissite)
 
-basin_gauge = SpatialPointsDataFrame(coords = data.frame(x = station.info$dec_long_va, y = station.info$dec_lat_va), data = data.frame(1),
-                            proj4string = CRS(projargs = paste0("+proj=longlat +datum=",station.info$dec_coord_datum_cd)) )
+# get basin gauge
+crsepsg = st_crs(station.info$dec_coord_datum_cd)$epsg
+inputcoords =  data.frame(lon = station.info$dec_long_va, lat = station.info$dec_lat_va)
+basin_gauge <- st_as_sf(inputcoords, coords = c("lon", "lat"), crs = crsepsg)
 
-basin_sp = as(basin,"Spatial")
-basin_sp = SpatialPolygonsDataFrame(basin_sp, data = data.frame(FID=row.names(basin_sp), row.names=row.names(basin_sp)))
-# need nad83 for getting ned data
-basin_sp_nad83 = sp::spTransform(basin_sp, CRS("+proj=longlat +datum=NAD83 +no_defs"))
-# add to extent to be extra safe - adding to bbox/extent by 0.01 dec degrees
-basin_sp_nad83@bbox[,1] = basin_sp_nad83@bbox[,1] - 0.01
-basin_sp_nad83@bbox[,2] = basin_sp_nad83@bbox[,2] + 0.01
+# reproject basin - matching gauge, should be nad83
+basin_nad83 = st_transform(basin, crs = crsepsg)
+# buffer layer to prevent edge issues with the dem, dist arc degrees or meters?
+basin_nad83_buffer = st_buffer(basin_nad83, dist = 30)
 
 # grab the DEM map
-NED <- get_ned(template = basin_sp_nad83, label=gsub(" ","_",station.info$station_nm), force.redo = T, 
-               raw.dir = "preprocessing/spatial_source/NED", 
-               extraction.dir = paste0("preprocessing/spatial_source/NED/EXTRACTIONS/", gsub(" ","_",station.info$station_nm), "/"))
+NED <- get_ned(template = basin_nad83_buffer, 
+               label=gsub(" ","_",station.info$station_nm),
+               extraction.dir = paste0("preprocessing/spatial_source/", gsub(" ","_",station.info$station_nm), "/"),
+               force.redo = T)
 
 # PLOT - should cover basin
 if (plot) {
   par(mfrow=c(1,1), mar=c(3,3,3,7))
   plot(NED)
   par(mfrow=c(1,1), mar=c(3,3,3,7), new=TRUE)
-  plot(basin_sp_nad83, add=T)
+  plot(basin_nad83_buffer, add=T)
+  par(mfrow=c(1,1), mar=c(3,3,3,7), new=TRUE)
+  plot(basin_nad83, add=T)
 }
 
 # ------------------------------ PROJECT MAPS - EDIT HERE ------------------------------
 # projections -- wgs 84 utm 11n epsg:32611 || wgs 84 utm 10n epsg:32610
 # ZoneNumber = floor((station.info$dec_long_va + 180)/6) + 1
-epsg_str =  "EPSG:32611"
+epsg_str =  "EPSG:32610"
 # FOR NED "+proj=longlat +datum=NAD83 +no_defs"
 # ------------------------------ END EDIT ------------------------------
-basin_sp_proj = sp::spTransform(basin_sp, CRS(epsg_str))
+basin_utm = st_transform(basin_nad83, crs = epsg_str)
 NED_proj = terra::project(as(NED,"SpatRaster" ),epsg_str)
-basin_gauge_proj = sp::spTransform(basin_gauge, CRS(epsg_str))
+basin_gauge_proj = st_transform(basin_gauge, crs = epsg_str)
 # PLOT
 if (plot) {
+  # jpeg("preprocessing/gauge_basin_dem.jpeg", quality = 150, width = 1000, height = 800)
   par(mfrow=c(1,1), mar=c(3,3,3,7))
   plot(NED_proj)
   par(mfrow=c(1,1), mar=c(3,3,3,7), new=TRUE)
-  plot(basin_sp_proj, add=T)
+  plot(basin_utm, add=T)
   par(mfrow=c(1,1), mar=c(3,3,3,7), new=TRUE)
   plot(basin_gauge_proj, add=T)
-  # save
-  # jpeg("maps/gauge_basin_dem.jpeg", quality = 150, width = 1000, height = 800)
-  dev.off()
+  # dev.off()
 }
 
 # ------------------------------ GET SOILS MAPS ------------------------------
 # devtools::install_github("lhmrosso/XPolaris")
 library("XPolaris")
 
-# ID = gsub(" ","_",station.info$station_nm)
-# bbox_df = as.data.frame(ID)
-# bbox_df$lat = station.info$dec_lat_va
-# bbox_df$long = station.info$dec_long_va
-
-# if you have issues, use single location example above
-bbox_df = data.frame(ID = c("a","b","c","d"))
-bbox_df$lat = c(basin_sp@bbox[2,], basin_sp@bbox[2,])
-bbox_df$long = c(basin_sp@bbox[1,], basin_sp@bbox[1,2], basin_sp@bbox[1,1])
+ID = gsub(" ","_",station.info$station_nm)
+bbox_df = as.data.frame(ID)
+bbox_df$lat = station.info$dec_lat_va
+bbox_df$long = station.info$dec_long_va
+# st_bbox()
+# # if you have issues, use single location example above
+# bbox_df = data.frame(ID = c("a","b","c","d"))
+# bbox_df$lat = c(basin_sp@bbox[2,], basin_sp@bbox[2,])
+# bbox_df$long = c(basin_sp@bbox[1,], basin_sp@bbox[1,2], basin_sp@bbox[1,1])
 
 xplot(locations = bbox_df)
 
@@ -155,8 +156,10 @@ df_ximages <- ximages(locations = bbox_df,
 
 # ------------------------------ OUTPUT MAPS ------------------------------
 writeRaster(NED_proj, "preprocessing/spatial_source/ned_dem_basinclip.tif")
-writeOGR(basin_sp_proj, dsn = "preprocessing/spatial_source/",layer = "nldi_basin", driver ="ESRI Shapefile")
-writeOGR(basin_gauge_proj, dsn = "preprocessing/spatial_source/", layer = "gauge_loc", driver="ESRI Shapefile")
+st_write(basin_utm, dsn = "preprocessing/spatial_source/nldi_basin.shp")
+st_write(basin_gauge_proj, dsn = "preprocessing/spatial_source/gauge_loc.shp")
+# writeOGR(basin_utm, dsn = "preprocessing/spatial_source/",layer = "nldi_basin", driver ="ESRI Shapefile")
+# writeOGR(basin_gauge_proj, dsn = "preprocessing/spatial_source/", layer = "gauge_loc", driver="ESRI Shapefile")
 
 
 # ------------------------------ END ------------------------------

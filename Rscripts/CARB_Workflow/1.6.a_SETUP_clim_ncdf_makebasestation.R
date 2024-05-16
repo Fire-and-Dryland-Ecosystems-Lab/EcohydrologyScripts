@@ -9,6 +9,7 @@
 #   - Processed/edited/subset aggregated (through time), netcdf climate data, via: #http://thredds.northwestknowledge.net:8080/thredds/reacch_climate_MET_aggregated_catalog.html
 #     (easies to use/download spatial subset to begin with, via the NetcdfSubset download option)
 #     Has already been processed and modified via clim_ncdf_processgridmet
+#   - gridment elevation metadata netcdf (from same source)
 #   - Basin and DEM raster maps
 
 library(ncdf4)
@@ -16,60 +17,91 @@ library(terra)
 
 plots = T
 
-
 # ------------------------------ INPUTS ------------------------------
 # uncompiled source of the createbaseinfo_netcdf.c code
 ncbase_src = "../exmaples/createbaseinfo_netcdf.c"
 
 # USE SAME BASIN RASTER AS PREVIOUS SCRIPT (clim_1_ncdf_processgridmet.R)
-basin = rast("preprocessing/spatial90m/basin.tif")
-DEM = rast("preprocessing/spatial90m/dem.tif")
+basin = rast("preprocessing/whitebox/basin.tif")
+DEM = rast("preprocessing/whitebox/dem.tif")
 
 # location for maps to be used with base station creation
 map_dest = "clim/netcdfmaps"
 
 # where to output a new zone map based on Netcdf grid
-zone_dest = "preprocessing/spatial90m/"
+zone_dest = "preprocessing/whitebox/"
 
 # specify climate files individualy or via pattern, USE PROCESSED CLIMATE INPUTS FROM PREVIOUS SCRIPT (clim_1_ncdf_processgridmet.R)
 clim_files = list.files(path = "clim",pattern = "crop_agg_met_", full.names = T)
-
+# backup since sometimes the clim netcdf can not work to create the grid
+gridmet_metadata = "../data/gridmet/metdata_elevationdata.nc"
 # CHECK THE EDITS TO THE BASE STATION FILE AT THE END, FILE NAMES MAY NEED TO BE CORRECTED
 
-# ------------------------------ OUTPUT NETCDF AS TIF FOR USE IN CREATING GRID ------------------------------
-# we know extent should be since we just cropped using it
+# ------------------------------ END INPUTS ------------------------------
+# for later use
 basin_vect = as.polygons(basin)
-basin_vect_unproj = project(basin_vect, "+proj=longlat +datum=WGS84 +no_defs ")
-
-clim_tmp = rast(clim_files[1])
+basin_vect_latlon = project(basin_vect, "EPSG:4326")
+# ------------------------------ GET GRID MAP FROM NETCDF ------------------------------
+# for comparison, exploring original data
 # tmp = nc_open(clim_files[1])
-# tmp$var$precipitation_amount$dim[[1]]$vals
-# tmp$var$precipitation_amount$dim[[2]]$vals
+# latitude <- ncvar_get(tmp, "lat")
+# longitude <- ncvar_get(tmp, "lon")
 
-ext(clim_tmp) = ext(basin_vect_unproj)
-# output geotif raster using first day of data from ncdf
-# writeRaster(clim_tmp[[1]], "preprocessing/spatial_source/GRIDSOURCE_crop_agg_met_pr_1979_CurrentYear_CONUS.tif", overwrite=T)
-nc_grid = clim_tmp[[1]]
+# there are slight differences between getting the grid from the metadata elevation map and the 
+# netcdf already clipped using NCO. Using the clipped data from NCO as a default for now, but 
+# could easily be better the other way, code should be easy to toggle
 
-# ------------------------------ GENERATE GRID MAP IN PROJECTED AND UNPROJECTED CRS  ------------------------------
-#nc_grid = rast("preprocessing/spatial_source/GRIDSOURCE_crop_agg_met_pr_1979_CurrentYear_CONUS.tif")
-id_grid = rast(nc_grid)
-values(id_grid) = seq_along(values(nc_grid))
-names(id_grid) = "ID"
-id_grid_proj = project(id_grid, basin) # back to original projection
-
-if (plots) {
-  # projected maps
-  plot(id_grid_proj)
-  plot(basin_vect, add=T)
-  # unprojected maps
-  plot(id_grid)
-  plot(basin_vect_unproj, add=T)
+# ---------- Grid from clipped climate netcdf files ----------
+grid_from_clim = T
+if (grid_from_clim) {
+  # read in netcdf as raster, get only 1 day of precip
+  nc_grid_lonlat = rast(clim_files[1])[[1]]
+  # set values to sequential, chnage name
+  values(nc_grid_lonlat) = seq_along(values(nc_grid_lonlat))
+  names(nc_grid_lonlat) = "ID"
+  # project to utm, mask to get zone/basestation map
+  nc_grid = project(nc_grid_lonlat, basin, method="near")
+  id_grid = mask(nc_grid, basin)
 }
 
+grid_from_elevmeta = F
+if (grid_from_elevmeta) {
+  gridmeta_proj = project(rast(gridmet_metadata), crs(basin))
+  # ----- method using gridmet elevation metadata -----
+  # clip/crop the grid
+  nc_grid  = crop(gridmeta_proj, basin, extend = T, touches = T, snap = "out")
+  # fix name, set values to sequential
+  names(nc_grid) = "ID"
+  values(nc_grid) = seq_along(values(nc_grid))
+  nc_grid_lonlat = project(nc_grid, "EPSG:4326")
+  # resample the grid to basin res (from 4km to 90m or whatever)
+  basin_extended = extend(basin, nc_grid)
+  nc_grid_resample = resample(nc_grid, basin_extended, method = "near")
+  # mask then crop to original basin extent
+  nc_grid_mask = mask(nc_grid_resample, basin_extended)
+  id_grid = crop(nc_grid_mask, basin)
+}
+
+
+if (plots) {
+  par(mfrow = c(1, 2))
+  # projected grid
+  plot(nc_grid_lonlat)
+  plot(basin_vect_latlon, add=T)
+  # masked map (zone basestation map)
+  plot(id_grid)
+  plot(basin_vect, add=T)
+}
+
+
+# --------------- output the zone grid for use in preprocessing ---------------
+# zone = mask(x = id_grid_proj, mask = basin)
+writeRaster(id_grid, file.path(zone_dest, "zone.tif"), overwrite=T)
+
 # ------------------------------ GENERATE INPUTS FOR NETCDF BASE STATION CREATION  ------------------------------
-# Maps need to be based on the netcdf resolution + extent
-dem_nc = resample(DEM, nc_grid)
+# Maps need to be based on the netcdf latlong grid resolution + extent
+demproj = project(DEM, "EPSG:4326")
+dem_nc = resample(demproj, nc_grid_lonlat,method="average")
 # LAI
 lai_nc = dem_nc
 values(lai_nc) = 3.0
@@ -81,16 +113,13 @@ if (!file.exists(map_dest)) {
 
 writeRaster(dem_nc, filename = file.path(map_dest,"dem.asc"), filetype="AAIGrid", gdal = c("FORCE_CELLSIZE=TRUE"), NAflag=-9999, overwrite=T)
 writeRaster(lai_nc, filename = file.path(map_dest,"lai.asc"), filetype="AAIGrid", gdal = c("FORCE_CELLSIZE=TRUE"), NAflag=-9999, overwrite=T)
-writeRaster(id_grid, filename = file.path(map_dest,"cellid.asc"), filetype="AAIGrid", datatype =  "INT4S", gdal = c("FORCE_CELLSIZE=TRUE"), NAflag=-9999, overwrite=T)
+writeRaster(nc_grid_lonlat, filename = file.path(map_dest,"cellid.asc"), filetype="AAIGrid", datatype =  "INT4S", gdal = c("FORCE_CELLSIZE=TRUE"), NAflag=-9999, overwrite=T)
 file.remove(list.files(path = map_dest, pattern = ".prj|.aux.xml", full.names = T))
 
 # format: ID ID Y X X Y
-xyid_loc = cbind(1:nrow(crds(id_grid)), 1:nrow(crds(id_grid)), crds(id_grid)[,c("y","x")], crds(id_grid))
-write.table(xyid_loc, file.path(map_dest,"xyid_loc.txt"), row.names = F, col.names = F)
 
-# output the zone grid for use in preprocessing
-zone = mask(x = id_grid_proj, mask = basin)
-writeRaster(zone, file.path(zone_dest, "zone.tif"))
+xyid_loc = cbind(1:nrow(crds(nc_grid_lonlat)), 1:nrow(crds(nc_grid_lonlat)), crds(nc_grid_lonlat)[,c("y","x")], crds(nc_grid_lonlat))
+write.table(xyid_loc, file.path(map_dest,"xyid_loc.txt"), row.names = F, col.names = F)
 
 # ------------------------------ RUN C BIN TO GET BASE STATION  ------------------------------
 # COMPILE

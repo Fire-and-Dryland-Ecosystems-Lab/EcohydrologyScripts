@@ -5,19 +5,43 @@ library(hydroGOF)
 library(tidyverse)
 options(scipen = 9999)
 
+out_dir = "output/Ward_msr_cal2024-04-08--12-50-05/"
 # ============================== Inputs ==============================
 obs_source = "clim/WARD_C_AT_HWY_89_NR_TAHOE_PINES_CA_1972_2022"
 
 # ============================== Cal Metrics ==============================
 Qobs = fread(obs_source) # CHECK IF IN MM
-eval = cal_eval(out_dir = out_dir, Qobs = Qobs)
-eval_mn = cal_eval(out_dir = out_dir, Qobs = Qobs, monthly = T)
+sim_DT = get_basin_daily(out_dir)
+fixQ = T
+if (fixQ){
+  sim_DT$streamflow = sim_DT$streamflow  + sim_DT$base_flow
+}
+eval = cal_eval(sim_DT = sim_DT, Qobs = Qobs)
+eval_mn = cal_eval(sim_DT = sim_DT, Qobs = Qobs, monthly = T)
 
 eval[order(eval$NSE, decreasing = T),]
 eval_mn[order(eval_mn$NSE, decreasing = T),]
 
 defchg_nse = def_changes_by_eval(out_dir, eval_mn)
 defchg_nse
+
+par_ranges_by_pctle = function(defchg_nse, pct = .90) {
+  x = as.numeric(defchg_nse[1,3:ncol(defchg_nse)])
+  pctl = quantile(x = x, probs = pct)
+  tmp = defchg_nse[,3:ncol(defchg_nse)]
+  def90 = tmp[,tmp[1,] >= pctl]
+  ranges = data.frame(min = as.numeric(apply(def90,1,min)), max = as.numeric(apply(def90,1,max)))
+  # signif(ranges, digits = 5)
+  ranges = cbind(variable = defchg_nse[,1],ranges)
+  cat("90th Percentile NSE - Ranges of Pars\n------------------------------------\n")
+  print(ranges)
+  return(ranges)
+}
+ranges = par_ranges_by_pctle(defchg_nse)
+
+IOin_def_pars_sobol()
+sensitivity::sobol()
+
 # ============================== Sensitivity ==============================
 pars_sens(out_dir, eval_mn)
 
@@ -56,4 +80,14 @@ datestr = paste0(gsub( ":", "-", sub( " ", "--", Sys.time())))
 ggsave(filename = paste0("plots/cal_tsmn_obscompare", datestr,".jpg"), cal_plot_tsmn_obscompare, height = 8, width = 12)
 
 
+# ================================================================================
+cal_single_compare = sim_DT_sub_mn %>%
+  ggplot() + 
+  geom_line(aes(x = year_month, y = streamflow, color = "Sim",), linewidth = 1.5) + 
+  geom_line(data = Qobs_sub_mn, aes(x = year_month, y=Flow_mmd, color = "Obs"), linewidth = 1) +
+  scale_color_manual(values = c("Obs" = "black", "Sim"="red")) + 
+  labs(title = "Streamflow timeseries", x = "Month", color = "Run")
+
+datestr = paste0(gsub( ":", "-", sub( " ", "--", Sys.time())))
+ggsave(filename = paste0("plots/cal_single_compare_", datestr,".jpg"), cal_single_compare, height = 8, width = 12)
 # ================================================================================

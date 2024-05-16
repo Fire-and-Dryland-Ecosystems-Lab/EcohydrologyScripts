@@ -15,7 +15,7 @@ library(ncdf4)
 library(terra)
 
 plot = T
-basin = rast("preprocessing/spatial90m/basin.tif")
+basin = rast("preprocessing/whitebox/basin.tif")
 
 # source netcdfs (these are default file names from THREADS aggregate download)
 # pr = "../data/gridmet/agg_met_pr_1979_CurrentYear_CONUS.nc"
@@ -44,13 +44,23 @@ clim_dest = "clim"
 basin_vect = as.polygons(basin)
 # writeVector(basin_vect, "preprocessing/spatial_source/basin_vect.shp", overwrite=T)
 # projection for netcdf data is: +proj=longlat +datum=WGS84 +no_defs 
-basin_vect_unproj = project(basin_vect, "+proj=longlat +datum=WGS84 +no_defs ")
-# writeVector(basin_vect_unproj, "preprocessing/spatial_source/basin_vect_unproj.shp", overwrite=T)
+# basin_vect_latlon = project(basin_vect, "+proj=longlat +datum=WGS84 +no_defs ")
+basin_vect_latlon = project(basin_vect, "EPSG:4326")
+# writeVector(basin_vect_latlon, "preprocessing/spatial_source/basin_vect_latlon.shp", overwrite=T)
+
+basin_extent = ext(basin_vect_latlon)
+# cell size is 4 km, buffer should be at least 3 km at most latitudes 
+# so should cover the centroids of netcdf cells not completely inside basin
+basin_extent_buffer = extend(basin_extent, 0.03)
 
 # this should be in lon lat wgs84 to match ncdf - see xy axes
-if (plot) {plot(basin_vect_unproj)}
+if (plot) {
+  plot(basin_extent_buffer)
+  plot(basin_extent,add=T)
+  plot(basin_vect_latlon,add=T)
+}
 
-basin_extent = ext(basin_vect_unproj)
+basin_extent = basin_extent_buffer
 
 # iterate through each climate file
 for (infile in clim_files) {
@@ -70,7 +80,8 @@ for (infile in clim_files) {
                     "ncap2 -O -s '",varname,"=double(",varname,")' ", outfile," ", outfile)
   # ASSUMES EITHER UNIX OR IF ON WINDOWS USING WSL
   if (.Platform$OS.type == "windows") {
-    tmp = noquote(paste("bash -c \"", crop_cmd, "\"", sep = ""))
+    # tmp = noquote(paste("bash -c \"", crop_cmd, "\"", sep = ""))
+    tmp = noquote(paste("wsl ", crop_cmd, sep = ""))
   }
   
   system(tmp)

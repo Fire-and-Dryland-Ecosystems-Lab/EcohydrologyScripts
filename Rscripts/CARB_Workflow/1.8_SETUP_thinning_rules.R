@@ -2,16 +2,32 @@
 library(rhutils)
 library(terra)
 library(data.table)
+source("R/0_global_vars.R")
+source("../r/fun_MSR_thinning.R")
 
-source("r/4.0_MSR_thinning_functions.R")
 
-
+# ------------------------------ INPUTS ------------------------------
 lpc_data_path = "../data/Landcover/2019/" 
-lpc_pattern = "h003v008"
-mask_map_path = "preprocessing/spatial90m/basin.tif"
+
+# to get the grid
+mask_map_path = "preprocessing/whitebox/basin.tif"
+
+lpc_grid = vect("../data/Landcover/CONUS_C2_ARD_grid/conus_c2_ard_grid.shp")
+mask_rast = rast(mask_map_path)
+mask_rast_prj = project(mask_rast,crs(lpc_grid))
+grid_crop = crop(lpc_grid,mask_rast_prj)
+grid_crop_vals = values(grid_crop)
+
+lpc_pattern = paste0("h",sprintf("%0*d", 3, grid_crop_vals$h),"v", sprintf("%0*d", 3, grid_crop_vals$v))
+# lpc_pattern = "h003v008"
+
 round_value = 10
-output_rules_map = "preprocessing/spatial90m/rules_90m.tif"
+
+output_rules_map = "preprocessing/whitebox/rules_LPC_90m.tif"
 output_rules_file = "preprocessing/rules/LPC_90m.rules"
+output_std_veg_cover = "preprocessing/whitebox/LPC_veg_cover.tif"
+
+# --------------------------------------------------------------------
 
 lpc_map_list = lpc_extract(lpc_data_path = lpc_data_path, lpc_pattern = lpc_pattern, mask_map_path = mask_map_path)
 
@@ -25,7 +41,7 @@ unique_rules = outlist[[2]]
 
 rules_map_std = make_rules_map(lpc_rules_df, mask_map_path, lpc_map_list)
 
-# These steps shouldve already happened in 1.2.1
+# These steps shouldve already happened in previous step
 
 # writeRaster(rules_map_std, output_rules_map, overwrite = T)
 # 
@@ -39,10 +55,8 @@ rules_map_std = make_rules_map(lpc_rules_df, mask_map_path, lpc_map_list)
 #   strata_ct = NULL
 # )
 
-
-
 # ideally turn this into a loop that pulls directly from the excel doc for thin values
-treatments = readxl::read_excel("../data/FuelTreatments/CARB_RHESSys_FuelTreatments.xlsx", sheet = 1)
+# treatments = readxl::read_excel("../data/FuelTreatments/CARB_RHESSys_FuelTreatments.xlsx", sheet = 1)
 
 # 1 is NO TREATMENT
 

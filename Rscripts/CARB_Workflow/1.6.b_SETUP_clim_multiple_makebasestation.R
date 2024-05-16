@@ -6,22 +6,22 @@ library(terra)
 plots = T
 
 # ------------------------------ INPUTS ------------------------------
-input_nc_pcp = "clim/crop_agg_met_pr_1979_CurrentYear_CONUS.nc"
-input_nc_tmin = "clim/crop_agg_met_tmmn_1979_CurrentYear_CONUS.nc"
-input_nc_tmax = "clim/crop_agg_met_tmmx_1979_CurrentYear_CONUS.nc"
+# input_nc_pcp = "clim/crop_agg_met_pr_1979_CurrentYear_CONUS.nc"
+# input_nc_tmin = "clim/crop_agg_met_tmmn_1979_CurrentYear_CONUS.nc"
+# input_nc_tmax = "clim/crop_agg_met_tmmx_1979_CurrentYear_CONUS.nc"
 
 # USE SAME BASIN RASTER AS PREVIOUS SCRIPT (clim_1_ncdf_processgridmet.R)
-basin = rast("preprocessing/spatial90m/basin.tif")
-DEM = rast("preprocessing/spatial90m/dem.tif")
+basin = rast("mo_tmpdata/basin.tif")
+DEM = rast("mo_tmpdata/dem.tif")
 
 # location for maps to be used with base station creation
-map_dest = "clim/netcdfmaps"
+map_dest = "mo_tmpdata"
 
 # where to output a new zone map based on Netcdf grid
-zone_dest = "preprocessing/spatial90m/"
+zone_dest = "mo_tmpdata"
 
 # specify climate files individualy or via pattern, USE PROCESSED CLIMATE INPUTS FROM PREVIOUS SCRIPT (clim_1_ncdf_processgridmet.R)
-clim_files = list.files(path = "clim",pattern = "crop_agg_met_", full.names = T)
+clim_files = list.files(path = "mo_tmpdata",pattern = "crop_agg_met_", full.names = T)
 
 # CHECK THE EDITS TO THE BASE STATION FILE AT THE END, FILE NAMES MAY NEED TO BE CORRECTED
 
@@ -45,7 +45,20 @@ nc_grid = clim_tmp[[1]]
 id_grid = rast(nc_grid)
 values(id_grid) = seq_along(values(nc_grid))
 names(id_grid) = "ID"
-id_grid_proj = project(id_grid, basin) # back to original projection
+id_grid_proj = project(id_grid, basin, method="near") # back to original projection
+
+unique(values(id_grid))
+unique(values(id_grid_proj))
+
+plot(id_grid_proj)
+plot(basin_vect, add=T)
+# unprojected maps
+plot(id_grid)
+plot(basin_vect_unproj, add=T)
+
+writeRaster(id_grid_proj, "mo_tmpdata/gridID.tif")
+
+
 
 # ------------------------------ GET NETCDF DATA ------------------------------
 

@@ -1,7 +1,7 @@
 # -------------------- Execute RHESSys Runs - calibration --------------------
 library(RHESSysIOinR)
 library(rhutils)
-source("R/3.3.1_MSR_3_calibration_inputs.R")
+source("R/3.3.1_MSR_calibration_inputs.R")
 
 # -------------------- PARALELL RUNS --------------------
 write_param_table(input_def_pars)
@@ -49,10 +49,10 @@ if (singlerun) {
     def_pars = input_def_pars,
     tec_data = input_tec_data,
     output_filter = output_filter,
-    return_cmd = T,
+    return_cmd = F,
     write_run_metadata = T
   )
-  write_param_table(input_def_pars)
+  # write_param_table(input_def_pars)
   out_dir = collect_output()
 }
 
