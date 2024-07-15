@@ -1,5 +1,12 @@
 # Author: Erin J Hanan
-# This workflow calculates an LAI map (calculated independently for each vegetation type) from and NDVI map. It also normalizes from using soil pixels and the brightest pixels in each NDVI map
+# This workflow calculates an LAI map (calculated independently for each vegetation type) from and NDVI map. 
+# It also normalizes from using soil pixels and the brightest pixels in each NDVI map
+
+# The equation here was developed by: Baret, F., A. Olioso, J. L. Luciani, and J. F. Hanocq. 1989. Estimation de l’énergie 
+# photosynthétiquement active absorbée par une culture de blé à partir de données radiométriques. Agronomie 9: 885–895.
+
+# For more info on the method, see equation 3 in: Hanan, Erin J., et al. "Accounting for disturbance history in models: 
+# Using remote sensing to constrain carbon and nitrogen pool spin‐up." Ecological Applications 28.5 (2018): 1197-1214.
 
 cd path_to/auxdata
 
