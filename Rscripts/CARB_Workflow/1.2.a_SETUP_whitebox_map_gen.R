@@ -5,9 +5,6 @@
 # install.packages("whitebox")
 # whitebox::install_whitebox()
 
-# for soil: ?
-# appendTextureclass {soilassessment}
-
 library(whitebox)
 library(terra)
 library(rhutils)
@@ -22,7 +19,8 @@ dem_source_path = "preprocessing/spatial_source/ned_dem_basinclip.tif"
 gauge_source = "preprocessing/spatial_source/gauge_loc.shp"
 gauge_snap_dist = 90
 
-stream_threshold=100
+stream_threshold=150
+stream_threshold=75
 
 # for final and temp output
 output_dir = "preprocessing/whitebox"
@@ -35,7 +33,8 @@ testing = F
 # check + add folders
 if (!dir.exists(output_dir)) {
   dir.create(output_dir)
-}if (!dir.exists(wb_tmp)) {
+} 
+if (!dir.exists(wb_tmp)) {
   dir.create(wb_tmp)
 }
 
@@ -104,9 +103,6 @@ if (plots) {
   plot(vect(file.path(output_dir, "gauge_loc_snap.shp")), add=T,col="red")
 }
 
-# wbt_basins(d8_pntr = file.path(wb_tmp, "dem_brch_ptr_d8.tif"), output = file.path(output_dir, "basin.tif"))
-
-
 # ==================== Crop and Trim by basin ====================
 dem_brch_mask = mask(rast(file.path(wb_tmp, "dem_brch.tif")),rast(file.path(output_dir, "basin.tif")))
 writeRaster(dem_brch_mask,filename = file.path(output_dir, "dem.tif"), overwrite = T)
@@ -114,24 +110,15 @@ writeRaster(dem_brch_mask,filename = file.path(output_dir, "dem.tif"), overwrite
 streams_mask = mask(rast(file.path(wb_tmp, "streams.tif")),rast(file.path(output_dir, "basin.tif")))
 writeRaster(streams_mask,filename = file.path(output_dir, "streams.tif"), overwrite = T)
 
-
 # ==================== Subbasins/hillslopes ====================
 # HILLSLOPES DOESNT WORK SINCE IT EXCLUDES THE STREAM PIXELS
 wbt_subbasins(d8_pntr = file.path(wb_tmp, "dem_brch_ptr_d8.tif"), streams = file.path(wb_tmp, "streams.tif"), output = file.path(wb_tmp, "subbasins.tif"))
-
-# wbt_hillslopes(d8_pntr = file.path(wb_tmp, "dem_brch_ptr_d8.tif"), streams = file.path(wb_tmp, "streams.tif"), output = file.path(wb_tmp, "hillslopes.tif"))
-# hills = rast(file.path(wb_tmp, "hillslopes.tif"))
-# hills = mask(hills,rast(file.path(output_dir, "basin.tif")))
-# hillssize = summary(as.factor(values(hills)))
-# hillssize[hillssize <10]
-# plot(hills)
-
 subbasins = rast(file.path(wb_tmp, "subbasins.tif"))
 subbasins = mask(subbasins,rast(file.path(output_dir, "basin.tif")))
-# values(subbasins) = as.factor(values(subbasins))
 
-colors <- rainbow(length(seq(1,27)))
+colors <- rainbow(length(seq_along(unique(values(subbasins)))))
 plot(subbasins, main = "Subbasins", col=colors)
+plot(streams_mask, col="grey",add=T)
 # plot(rast( file.path(wb_tmp, "streams.tif")), main = "Streams",add=T,col="black")
 
 # check if there are tiny subbasins
@@ -142,32 +129,32 @@ length(tmp[tmp<20])
 
 reclasshill = F
 if (reclasshill) {
-  # reclass
-  # 33 into 32
-  # 34 into 36
-
+  # reclass badhill into targethill
+  badhill = 25
+  targethill = 29
+  
   subset = subbasins
-  subset[subset != 34] = NA
+  subset[subset != badhill] = NA
   tarsub = subbasins
-  tarsub[tarsub != 36] = NA
+  tarsub[tarsub != targethill] = NA
   
   plot(subbasins, main = "Subbasins", col=colors)
-  plot(subset, col = "black",add=T)
   plot(streams_mask, col="grey",add=T)
+  plot(subset, col = "black",add=T)
   plot(tarsub, col="brown",add=T)
-  
-  tmp = rast(file.path(wb_tmp, "subbasins.tif"))
 
-  tmp[tmp == 33] = 32
-  tmp[tmp == 34] = 36
-  
+  tmp = subbasins
+  tmp[tmp == badhill] = targethill
+
   tmp2  = summary(as.factor(values(tmp)))
   tmp2[tmp2<20]
   
+  plot(tmp)
+  
   writeRaster(x = tmp, filename = file.path(output_dir, "subbasins.tif"), overwrite = T)
+} else {
+  writeRaster(x = subbasins, filename = file.path(output_dir, "subbasins.tif"), overwrite = T)
 }
-
-
 
 # ==================== Slope and aspect ====================
 wbt_slope(dem = file.path(output_dir, "dem.tif"), output = file.path(output_dir, "slope.tif"), units = 'degrees')
@@ -177,7 +164,7 @@ wbt_aspect(dem = file.path(output_dir, "dem.tif"), output = file.path(output_dir
 if (plots) {
   par(mfrow = c(2, 2))
   plot(rast(file.path(wb_tmp, "dem_brch.tif")), main = "Filled DEM")
-  plot(rast(file.path(wb_tmp, "dem_brch_accum_fd8.tif")), main = "Flow Accumulation")
+  plot(rast(file.path(wb_tmp, "dem_brch_accum_d8.tif")), main = "Flow Accumulation")
   plot(rast(file.path(output_dir, "slope.tif")), main = "Slope")
   plot(rast(file.path(output_dir, "aspect.tif")), main = "Aspect")
   if (writeplots) {
@@ -185,7 +172,7 @@ if (plots) {
   }
 }
 
-# ==================== Horizons ====================
+# ==================== Horizons + RHESSys Changes ====================
 wbt_horizon_angle(dem = file.path(output_dir, "dem.tif"), output = file.path(wb_tmp, "horizon_east.tif"), azimuth = 270, max_dist = 100000)
 wbt_horizon_angle(dem = file.path(output_dir, "dem.tif"), output = file.path(wb_tmp, "horizon_west.tif"), azimuth = 90, max_dist = 100000)
 # sin of radian horizon
@@ -217,14 +204,54 @@ if (plots) {
 # r.proj input=soil_texture location=soil mapset=rhessys output=soil_texture method=nearest --v --o
 # r.out.gdal in=soil_texture output="%base%/soil_texture.tif" format=GTiff --o
 
-# copy other maps
-# patches, soils, rules
-writeRaster(trim(rast("preprocessing/spatial90m/patches.tif")), file.path(output_dir,"patches.tif"), overwrite=T)
-writeRaster(trim(rast("preprocessing/spatial90m/rules_LPC_90m.tif")), file.path(output_dir,"rules_LPC_90m.tif"), overwrite=T)
-writeRaster(trim(rast("preprocessing/spatial90m/soils.tif")), file.path(output_dir,"soils.tif"), overwrite=T)
-writeRaster(trim(rast("preprocessing/spatial90m/basin.tif")), file.path(output_dir,"basin.tif"), overwrite=T)
+library(soiltexture)
 
+mask_map = rast(file.path(output_dir, "basin.tif"))
 
+clay = rast("preprocessing/spatial_source/POLARISOut/mean/clay/0_5/lat3940_lon-121-120.tif")
+sand = rast("preprocessing/spatial_source/POLARISOut/mean/sand/0_5/lat3940_lon-121-120.tif")
+
+clay_proj = project(clay, mask_map, method = "bilinear")
+clay_crop = crop(clay_proj, mask_map)
+clay_mask = mask(clay_crop, mask_map)
+
+sand_proj = project(sand, mask_map, method = "bilinear")
+sand_crop = crop(sand_proj, mask_map)
+sand_mask = mask(sand_crop, mask_map)
+
+# silt = "preprocessing/spatial_source/POLARISOut/mean/" # not needed since should be remainder
+texturedata = data.frame(CLAY = unname(values(clay_crop)), SILT = NA, SAND = unname(values(sand_crop)))
+texturedata$ind = seq(1,nrow(texturedata))
+texturedata$SILT = 100 - (texturedata$CLAY + texturedata$SAND)
+# summary(texturedata)
+
+# this should be the same as the grass function, getting texture from soil components
+texturedata$TextureName = TT.points.in.classes(tri.data  = texturedata,class.sys = "USDA.TT", PiC.type  = "t")
+
+usdaID = data.frame(name = c("clay","silty-clay", "silty-clay-loam", "sandy-clay", "sandy-clay-loam", "clay-loam",
+                             "silt","silt-loam","loam","sand","loamy-sand","sandy-loam"),
+                    ID = c(1:12),
+                    TextureName = c("Cl","SiCl", "SiClLo","SaCl","SaClLo","ClLo","Si","SiLo","Lo","Sa","LoSa","SaLo"))
+# to do the conversion between names, to make the above df
+# TT.classes.tbl(class.sys = "USDA.TT")
+texturedata = merge(texturedata,usdaID, by = "TextureName", allx = T, sort = F)
+texturedata = texturedata[order(texturedata$ind),]
+
+soil_texture = clay_crop
+names(soil_texture) = "soil_texture"
+nrow(texturedata) == length(values(soil_texture))
+values(soil_texture) = texturedata$ID
+
+soil_texture = mask(soil_texture, mask_map)
+plot(soil_texture)
+
+# RECLASS HERE
+m = matrix(c(11, 12), 
+           ncol = 2, byrow = T)
+new_soil_texture = classify(soil_texture, m)
+plot(new_soil_texture)
+
+writeRaster(new_soil_texture, file.path(output_dir, "soils.tif"))
 
 # ==================== TROUBLESHOOTING -- Check Maps ====================
 if (testing) {
