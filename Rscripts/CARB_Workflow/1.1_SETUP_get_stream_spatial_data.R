@@ -129,15 +129,14 @@ if (plot) {
 # devtools::install_github("lhmrosso/XPolaris")
 library("XPolaris")
 
-ID = gsub(" ","_",station.info$station_nm)
-bbox_df = as.data.frame(ID)
-bbox_df$lat = station.info$dec_lat_va
-bbox_df$long = station.info$dec_long_va
-# st_bbox()
-# # if you have issues, use single location example above
-# bbox_df = data.frame(ID = c("a","b","c","d"))
-# bbox_df$lat = c(basin_sp@bbox[2,], basin_sp@bbox[2,])
-# bbox_df$long = c(basin_sp@bbox[1,], basin_sp@bbox[1,2], basin_sp@bbox[1,1])
+# ID = gsub(" ","_",station.info$station_nm)
+# bbox_df = as.data.frame(ID)
+# bbox_df$lat = station.info$dec_lat_va
+# bbox_df$long = station.info$dec_long_va
+
+bbox_df = data.frame(ID = c("a","b","c","d"),
+                     lat = st_bbox(basin_nad83)[c(2,2,4,4)],
+                     long = st_bbox(basin_nad83)[c(1,3,1,3)])
 
 xplot(locations = bbox_df)
 
