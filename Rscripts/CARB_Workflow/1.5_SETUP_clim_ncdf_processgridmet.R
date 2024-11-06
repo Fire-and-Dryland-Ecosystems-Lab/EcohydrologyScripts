@@ -82,6 +82,8 @@ for (infile in clim_files) {
   if (.Platform$OS.type == "windows") {
     # tmp = noquote(paste("bash -c \"", crop_cmd, "\"", sep = ""))
     tmp = noquote(paste("wsl ", crop_cmd, sep = ""))
+  } else {
+    tmp = crop_cmd
   }
   
   system(tmp)
