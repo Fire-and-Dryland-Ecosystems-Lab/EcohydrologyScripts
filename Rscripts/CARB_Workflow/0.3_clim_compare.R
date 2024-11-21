@@ -22,9 +22,14 @@ input_base_clim = "clim/ward"
 find_site = sno_meta[which(grepl("ward creek", sno_meta$site_name)),]
 
 # netcdf
-input_nc_pcp = "clim/crop_agg_met_pr_1979_CurrentYear_CONUS.nc"
-input_nc_tmin = "clim/crop_agg_met_tmmn_1979_CurrentYear_CONUS.nc"
-input_nc_tmax = "clim/crop_agg_met_tmmx_1979_CurrentYear_CONUS.nc"
+input_nc_pcp = "clim/crop_agg_met_gridmet_pr_1979-01-01_2024-09-30.nc"
+input_nc_tmin = "clim/crop_agg_met_gridmet_tmmn_1979-01-01_2024-09-30.nc"
+input_nc_tmax = "clim/crop_agg_met_gridmet_tmmx_1979-01-01_2024-09-30.nc"
+
+# daymet
+input_nc_pcp_day = "clim/agg_met_daymet_prcp_1980-01-01_2023-12-31.nc"
+input_nc_tmin_day = "clim/agg_met_daymet_tmin_1980-01-01_2023-12-31.nc"
+input_nc_tmax_day = "clim/agg_met_daymet_tmax_1980-01-01_2023-12-31.nc"
 
 # daymet
 input_daymet = "clim/daymet/wepp_cli_edit.txt"
@@ -67,21 +72,66 @@ tmin_edit_nc = nc_open(input_nc_tmin)
 tmax_edit_nc = nc_open(input_nc_tmax)
 
 dat = ncvar_get(tmax_edit_nc, attributes(tmax_edit_nc$var)$names[1])
-tmax_df = as.data.frame((t(dat)))
+# dat[2:4,2:3,]
+tmaxavg = apply(dat, 3, mean)
+# tmax_df = as.data.frame((t(dat)))
 dat = ncvar_get(tmin_edit_nc, attributes(tmin_edit_nc$var)$names[1])
-tmin_df = as.data.frame((t(dat)))
+tminavg = apply(dat, 3, mean)
+# tmin_df = as.data.frame((t(dat)))
 dat = ncvar_get(pr_edit_nc, attributes(pr_edit_nc$var)$names[1])
-rain_df = as.data.frame((t(dat)))
+# rain_df = as.data.frame((t(dat)))
+pravg = apply(dat, 3, mean)
 
-nc_clim = data.frame(rain = (rain_df$V1+rain_df$V2)/2,
-                     tmin = (tmin_df$V1+tmin_df$V2)/2,
-                     tmax = (tmax_df$V1+tmax_df$V2)/2)
+# nc_clim = data.frame(rain = (rain_df$V1+rain_df$V2)/2,
+#                      tmin = (tmin_df$V1+tmin_df$V2)/2,
+#                      tmax = (tmax_df$V1+tmax_df$V2)/2)
+nc_clim = data.frame(rain = pravg,
+                     tmin = tminavg,
+                     tmax = tmaxavg)
 nc_clim$date = NA
 
 days = ncvar_get(pr_edit_nc, "time")
 dates =  as.Date("1900-01-01") + days
 nc_clim$date = dates
 nc_clim$source = "netcdf_gridmet"
+
+nc_close(pr_edit_nc)
+nc_close(tmin_edit_nc)
+nc_close(tmax_edit_nc)
+
+# ======================== DAYMET ================================
+pr_edit_ncday = nc_open(input_nc_pcp_day)
+tmin_edit_ncday = nc_open(input_nc_tmin_day)
+tmax_edit_ncday = nc_open(input_nc_tmax_day)
+
+dat = ncvar_get(tmax_edit_nc, attributes(tmax_edit_nc$var)$names[4])
+tmaxavg = apply(dat, 3, mean)
+# tmax_df = as.data.frame((t(dat)))
+dat = ncvar_get(tmin_edit_nc, attributes(tmin_edit_nc$var)$names[4])
+tminavg = apply(dat, 3, mean)
+# tmin_df = as.data.frame((t(dat)))
+dat = ncvar_get(pr_edit_nc, attributes(pr_edit_nc$var)$names[4])
+# rain_df = as.data.frame((t(dat)))
+pravg = apply(dat, 3, mean)
+
+# nc_clim = data.frame(rain = (rain_df$V1+rain_df$V2)/2,
+#                      tmin = (tmin_df$V1+tmin_df$V2)/2,
+#                      tmax = (tmax_df$V1+tmax_df$V2)/2)
+nc_clim_day = data.frame(rain = pravg,
+                     tmin = tminavg,
+                     tmax = tmaxavg)
+                     nc_clim_day$date = NA
+
+days = ncvar_get(pr_edit_nc, "time")
+dates =  as.Date("1950-01-01") + days
+nc_clim_day$date = dates
+nc_clim_day$source = "netcdf_daymet"
+
+nc_close(pr_edit_ncday)
+nc_close(tmin_edit_ncday)
+nc_close(tmax_edit_ncday)
+
+# ====================================================================
 
 writeclim = F
 if (writeclim) {
@@ -128,6 +178,8 @@ nc_clim = good_vars(nc_clim)
 daymet = good_vars(daymet)
 
 climate = rbind(agg_clim, snotel, nc_clim, daymet)
+
+climate = rbind(nc_clim, nc_clim_day)
 
 climate$date = as.POSIXlt(climate$date)
 climate$year = climate$date$year + 1900
@@ -182,15 +234,25 @@ gridmet_ml_ward$tmax = (gridmet_ml_ward$tmax - 32) * (5/9)
 summary(gridmet_ml_ward)
 summary(climate)
 
+climate = nc_clim
+climate = add_dates(climate)
+
 climate_mn = climate %>% group_by(source, year, month) %>% summarise(tmax = mean(tmax), tmin = mean(tmin), rain = mean(rain))
+
+climate_mn = climate %>% group_by(source, year, month) %>% summarise(tmax = mean(tmax), tmin = mean(tmin), rain = sum(rain))
+
 climate_mn = rbind(climate_mn, gridmet_ml_ward)
 climate_mn$year_month = zoo::as.yearmon(paste0(climate_mn$year,"-",climate_mn$month))
 
+climate_yr = climate %>% group_by(source, year) %>% summarise(tmax = mean(tmax), tmin = mean(tmin), rain = sum(rain))
 
-pr = climate_mn %>% group_by(source, year) %>% filter(year%in%c(1980,1990,2000,2010,2020)) %>% summarise(Precipitation = sum(rain)) %>%
+climate_yr %>% group_by(source) %>% summarise(Precipitation = mean(rain))
+
+
+pr2 = climate_mn %>% group_by(source, month) %>% summarise(Precipitation = mean(rain)) %>%
   ggplot() +
-  geom_col(aes(x = year, y = Precipitation, fill = source),position="dodge" ) +
-  labs(title = "Cumulative Annual Precipitation", x = "Year" ) +
+  geom_col(aes(x = month, y = Precipitation, fill = source),position="dodge" ) +
+  labs(title = "Mean Cumulative Monthly Precipitation", x = "Year" ) +
   theme(legend.title=element_blank())
 
 tmin = climate_mn %>% group_by(source, year) %>% filter(year%in%c(1980,1990,2000,2010,2020)) %>% summarise(`Minimum Temperature` = mean(tmin)) %>%
@@ -236,3 +298,10 @@ if (saveplots) {
   ggsave("plots/clim_tmin_mn.jpg", tmin2, width = 10, height = 12)
   ggsave("plots/clim_tmax_mn.jpg", tmax2, width = 10, height = 12)
 }
+
+
+pr = nc_clim %>% group_by(source, year) %>% summarise(Precipitation = sum(rain)) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = Precipitation, color = source) ) +
+  labs(title = "Cumulative Annual Precipitation", x = "Year" ) +
+  theme(legend.title=element_blank())

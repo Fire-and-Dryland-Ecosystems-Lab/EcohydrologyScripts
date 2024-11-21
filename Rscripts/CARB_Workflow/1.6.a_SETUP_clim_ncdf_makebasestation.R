@@ -136,6 +136,7 @@ varnames = rep(NA, length(clim_files))
 for (i in seq_along(clim_files)) {
   tmp = nc_open(clim_files[i])
   varnames[i] = names(tmp$var)
+    
 }
 
 ncbase = read.table(file.path(map_dest,"netcdf.base"))
