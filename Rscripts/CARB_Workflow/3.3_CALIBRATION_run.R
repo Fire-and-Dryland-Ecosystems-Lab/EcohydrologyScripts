@@ -1,7 +1,7 @@
 # -------------------- Execute RHESSys Runs - calibration --------------------
 library(RHESSysIOinR)
 library(rhutils)
-source("R/3.3.1_MSR_calibration_inputs.R")
+source("R/3.1_CALIBRATION_inputs.R")
 
 # -------------------- PARALELL RUNS --------------------
 write_param_table(input_def_pars)
@@ -26,7 +26,10 @@ out_dir = collect_output()
 # -------------------- MANUAL PARALLEL RUNS --------------------
 manualpara = F
 if (manualpara) {
-  load("r_obj/std_rhout.rdata")
+  #load("r_obj/std_rhout.rdata")
+  rhout= readLines("scripts/BigCreek_cal_runcmds_2024-05-30--11-47-35_TEST.txt")
+  rhout =
+  
   library(parallel)
   n_cores = parallel::detectCores() - 1
   start = Sys.time()

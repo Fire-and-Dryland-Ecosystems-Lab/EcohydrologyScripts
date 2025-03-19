@@ -1,41 +1,20 @@
 # Multiscale routing preprocess setup
 
 library(RHESSysPreprocessing)
-source("R/0_global_vars.R")
+library(rhutils)
+# source("R/0_global_vars.R")
 
 # -----------------------------------
-# basin_name = "BigCreek"
-basin_name = site
-dest = "preprocessing/preprocess_out/"
+name = "preprocessing/preprocess_out/WallaWallaNCdaymet"
+map_dir = "preprocessing/whitebox/"
+template = "preprocessing/template/walla_NCdaymet.template"
+check_template(template)
 # -----------------------------------
-
-#map_dir = "preprocessing/spatial180m/"
 overwrite = TRUE
 streams = "streams.tif"
 unique_strata_ID = TRUE
 seq_patch_IDs = F
-# asprules = NULL
-
-# ---------------- MSR -----------------
 convert_aspect = F
-asprules = "preprocessing/rules/LPC_90m.rules"
-map_dir = "preprocessing/whitebox/"
-
-# ---------------- std -----------------
-msrstd = F
-if (msrstd) {
-  config = "msr90m"
-  template = "preprocessing/template/carb_msr.template"
-  name = file.path(dest,paste0(basin_name,"_",config))
-}
-
-# ----------------- netcdf -----------------
-msrncdf = T
-if (msrncdf) {
-  config = "msr90m_nc"
-  template = "preprocessing/templates/carb_msr_nc.template"
-  name = file.path(dest,paste0(basin_name,"_", config))
-}
 
 # ----------------- run -----------------
 RHESSysPreprocess(template = template,
@@ -43,7 +22,6 @@ RHESSysPreprocess(template = template,
                   map_dir = map_dir,
                   streams = streams,
                   overwrite = overwrite,
-                  asprules = asprules,
                   unique_strata_ID = unique_strata_ID,
                   seq_patch_IDs = seq_patch_IDs,
                   convert_aspect = convert_aspect)

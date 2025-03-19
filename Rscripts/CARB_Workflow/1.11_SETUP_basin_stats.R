@@ -12,7 +12,7 @@ library(knitr)
 
 ########## INPUTS ##########
 
-worldfile = "preprocessing/preprocess_out/BigCreek_msr90m_nc.world"
+worldfile = "preprocessing/preprocess_out/WallaWallaNC.world"
 outfile = "preprocessing/basin_hillslope_stats.txt"
 
 #   vegid_tree = 1,
@@ -22,7 +22,7 @@ outfile = "preprocessing/basin_hillslope_stats.txt"
 
 ###############
 
-tmp = basin_hillslope_stats(worldfile = worldfile, outfile = outfile, LPC_vegnames = T)
+tmp = basin_hillslope_stats(worldfile = worldfile, outfile = outfile, LPC_vegnames = F)
 
 # come back to thi
 
